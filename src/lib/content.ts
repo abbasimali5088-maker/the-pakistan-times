@@ -67,11 +67,16 @@ export function serializeArticle(article: {
   return {
     id: article.id,
     title: article.titleUr || article.title,
+    titleUr: article.titleUr || article.title,
     titleEn: article.title,
     slug: article.slug,
     subtitle: article.subtitle,
     excerpt: article.excerptUr || article.excerpt,
+    excerptUr: article.excerptUr || article.excerpt,
+    excerptEn: article.excerpt,
     body: article.bodyUr || article.body,
+    bodyUr: article.bodyUr || article.body,
+    bodyEn: article.body,
     language: article.language,
     status: article.status,
     priority: article.priority,
@@ -99,6 +104,8 @@ export function serializeArticle(article: {
       ? {
           id: article.category.id,
           name: article.category.nameUr || article.category.name,
+          nameUr: article.category.nameUr || article.category.name,
+          nameEn: article.category.name,
           slug: article.category.slug,
         }
       : null,

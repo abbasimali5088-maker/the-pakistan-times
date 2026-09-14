@@ -5,6 +5,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { AdminShell, type AdminUser } from "@/components/admin/AdminShell";
 import { AdminApiError, adminFetch } from "@/lib/admin-fetch";
 
+function UrduFontLink() {
+  return (
+    // eslint-disable-next-line @next/next/no-page-custom-font
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  );
+}
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -44,7 +54,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }, [isLogin, pathname, router]);
 
   if (isLogin) {
-    return <>{children}</>;
+    return (
+      <>
+        <UrduFontLink />
+        {children}
+      </>
+    );
   }
 
   if (checking || !user) {
@@ -55,5 +70,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  return <AdminShell user={user}>{children}</AdminShell>;
+  return (
+    <>
+      <UrduFontLink />
+      <AdminShell user={user}>{children}</AdminShell>
+    </>
+  );
 }

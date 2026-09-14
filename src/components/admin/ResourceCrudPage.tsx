@@ -121,8 +121,9 @@ export function ResourceCrudPage<T extends { id: string }>({
 
   function startEdit(row: T) {
     const next: Record<string, string> = {};
+    const raw = row as unknown as Record<string, unknown>;
     for (const f of fields) {
-      const val = (row as Record<string, unknown>)[f.name];
+      const val = raw[f.name];
       next[f.name] = val === undefined || val === null ? "" : String(val);
     }
     setForm(next);

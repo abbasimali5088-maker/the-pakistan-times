@@ -332,3 +332,7 @@ html[lang="ur"] .prose-article {
     animation: none !important;
   }
 }
+
+.font-urdu {
+  font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Segoe UI", serif;
+}
