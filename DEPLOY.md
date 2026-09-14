@@ -28,16 +28,26 @@ Project code is **production-ready** for GitHub → Neon PostgreSQL → Vercel:
    - **Direct** → `DIRECT_DATABASE_URL` (Prisma migrations کے لیے)
 4. دونوں میں `?sslmode=require` رکھیں
 
-### Option 2 — Supabase / Vercel Postgres
+### Option 2 — Supabase (Vercel کے ساتھ)
 
-اسی طرح pooled + direct URLs حاصل کریں۔ اگر صرف ایک URL ملے تو دونوں env vars میں وہی URL ڈالیں۔
+**اہم:** Vercel پر `db.xxxxx.supabase.co:5432` اکثر **IPv6-only** ہوتا ہے → build میں  
+`P1001: Can't reach database server` آتا ہے۔
 
-مثال شکل:
+اس لیے Vercel پر **Pooler** لنک استعمال کریں:
 
-```
-DATABASE_URL="postgresql://USER:PASSWORD@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require"
-DIRECT_DATABASE_URL="postgresql://USER:PASSWORD@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
-```
+1. Supabase Dashboard → **Project Settings** → **Database**
+2. **Connection string** کھولیں
+3. Method: **Session pooler** منتخب کریں (Prisma migrate کے لیے بہترین)
+4. URI کاپی کریں — شکل:
+   `postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres?sslmode=require`
+5. Vercel میں **دونوں** میں وہی Session pooler URL ڈالیں:
+   - `DATABASE_URL`
+   - `DIRECT_DATABASE_URL`
+6. اگر `[YOUR-PASSWORD]` لکھا ہو تو اصل پاس ورڈ لگائیں
+7. Redeploy کریں
+
+**مت استعمال کریں (Vercel پر):**  
+`postgresql://postgres:...@db.lhodbkfmqdyhjgmicrey.supabase.co:5432/...`
 
 ---
 
