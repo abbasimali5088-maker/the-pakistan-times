@@ -8,7 +8,7 @@ import { FormField, TextInput } from "@/components/admin/FormField";
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("admin@thepakistantimes.local");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("pak123");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 

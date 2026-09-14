@@ -1,5 +1,4 @@
-import { cookies } from "next/headers";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
   SESSION_COOKIE,
@@ -10,61 +9,73 @@ import {
   requireUser,
   verifyPassword,
 } from "@/lib/auth";
-import { handleApi } from "@/lib/api";
+import { fail, handleApi, ok } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().min(3),
   password: z.string().min(1),
 });
 
+function cookieOptions(expiresAt: Date) {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    // Preview/proxy is often HTTP — secure cookies would break login
+    secure: false,
+    path: "/",
+    expires: expiresAt,
+  };
+}
+
 export async function POST(req: NextRequest) {
-  return handleApi(async () => {
+  try {
     const body = loginSchema.parse(await req.json());
+    const email = body.email.toLowerCase();
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || undefined;
 
-    // brute-force soft limit: 10 fails / 15 min per email
     const since = new Date(Date.now() - 15 * 60_000);
     const fails = await prisma.loginLog.count({
-      where: { email: body.email, success: false, createdAt: { gte: since } },
+      where: { email, success: false, createdAt: { gte: since } },
     });
     if (fails >= 10) {
       await prisma.loginLog.create({
-        data: { email: body.email, success: false, ip, userAgent },
+        data: { email, success: false, ip, userAgent },
       });
-      throw new AuthError("Too many failed attempts. Try again later.", 429);
+      return fail("Too many failed attempts. Try again later.", 429);
     }
 
-    const user = await prisma.user.findUnique({ where: { email: body.email } });
-    const valid = user && user.status === "active" && !user.deletedAt
-      ? await verifyPassword(body.password, user.passwordHash)
-      : false;
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { email: body.email }],
+        deletedAt: null,
+      },
+    });
+    const valid =
+      user && user.status === "active"
+        ? await verifyPassword(body.password, user.passwordHash)
+        : false;
 
     await prisma.loginLog.create({
       data: {
         userId: user?.id,
-        email: body.email,
+        email,
         success: !!valid,
         ip,
         userAgent,
       },
     });
 
-    if (!valid || !user) throw new AuthError("Invalid credentials", 401);
+    if (!valid || !user) {
+      return fail("Invalid credentials", 401);
+    }
 
     const session = await createSession(user.id, { ip, userAgent });
-    const jar = await cookies();
-    jar.set(SESSION_COOKIE, session.jwt, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      expires: session.expiresAt,
-    });
 
     await prisma.user.update({
       where: { id: user.id },
@@ -78,33 +89,52 @@ export async function POST(req: NextRequest) {
       userAgent,
     });
 
-    return {
-      user: { id: user.id, email: user.email, name: user.name, username: user.username },
-    };
-  });
+    const res = ok({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        username: user.username,
+      },
+    });
+    res.cookies.set(SESSION_COOKIE, session.jwt, cookieOptions(session.expiresAt));
+    return res;
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return fail("Validation failed", 422, err.flatten());
+    }
+    if (err instanceof AuthError) return fail(err.message, err.status);
+    console.error("[auth/login]", err);
+    return fail(err instanceof Error ? err.message : "Login failed", 500);
+  }
 }
 
 export async function DELETE() {
   return handleApi(async () => {
     const user = await getSessionUser();
-    const jar = await cookies();
-    const token = jar.get(SESSION_COOKIE)?.value;
+    const token = (await (await import("next/headers")).cookies()).get(SESSION_COOKIE)?.value;
     if (token) {
       try {
-        const { payload } = await (await import("jose")).jwtVerify(
-          token,
-          new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret"),
-        );
+        const { payload } = await (
+          await import("jose")
+        ).jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret"));
         await destroySession(String(payload.sid || ""));
       } catch {
         /* ignore */
       }
     }
-    jar.set(SESSION_COOKIE, "", { httpOnly: true, path: "/", expires: new Date(0) });
+    const res = ok({ ok: true });
+    res.cookies.set(SESSION_COOKIE, "", {
+      httpOnly: true,
+      path: "/",
+      expires: new Date(0),
+      sameSite: "lax",
+      secure: false,
+    });
     if (user) {
       await writeAudit({ userId: user.id, action: "logout", module: "security" });
     }
-    return { ok: true };
+    return res;
   });
 }
 

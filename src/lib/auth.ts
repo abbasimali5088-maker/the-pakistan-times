@@ -38,7 +38,7 @@ export async function createSession(userId: string, meta?: { ip?: string; userAg
   });
   const jwt = await new SignJWT({ sub: userId, sid: tokenHash })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(expiresAt)
+    .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
     .sign(secretKey());
   return { jwt, expiresAt, raw };
 }
