@@ -21,12 +21,19 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+function shouldUseSecureCookies() {
+  if (process.env.COOKIE_SECURE === "true") return true;
+  if (process.env.COOKIE_SECURE === "false") return false;
+  if (process.env.VERCEL === "1") return true;
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "";
+  return site.startsWith("https://");
+}
+
 function cookieOptions(expiresAt: Date) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    // Preview/proxy is often HTTP — secure cookies would break login
-    secure: false,
+    secure: shouldUseSecureCookies(),
     path: "/",
     expires: expiresAt,
   };
@@ -129,7 +136,7 @@ export async function DELETE() {
       path: "/",
       expires: new Date(0),
       sameSite: "lax",
-      secure: false,
+      secure: shouldUseSecureCookies(),
     });
     if (user) {
       await writeAudit({ userId: user.id, action: "logout", module: "security" });

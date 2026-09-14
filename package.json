@@ -4,16 +4,22 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --hostname 0.0.0.0 --port 4355",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start --hostname 0.0.0.0 --port 4355",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
+    "db:studio": "prisma studio",
     "postinstall": "prisma generate",
-    "jobs:run": "tsx scripts/run-jobs.ts"
+    "jobs:run": "tsx scripts/run-jobs.ts",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
@@ -44,5 +50,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.20.5",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

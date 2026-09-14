@@ -30,10 +30,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   ]);
 
+  const pagePath = (slug: string) => {
+    const map: Record<string, string> = {
+      about: "/about",
+      contact: "/contact",
+      privacy: "/privacy",
+      terms: "/terms",
+      disclaimer: "/disclaimer",
+      "editorial-policy": "/editorial-policy",
+      "corrections-policy": "/corrections",
+    };
+    return map[slug] || `/${slug}`;
+  };
+
   const entries: MetadataRoute.Sitemap = [
     { url: siteUrl, lastModified: now, changeFrequency: "hourly", priority: 1 },
     ...articles.map((a) => ({
-      url: `${siteUrl}/article/${a.slug}`,
+      url: `${siteUrl}/${a.slug}`,
       lastModified: a.updatedAt || a.publishedAt || now,
       changeFrequency: "daily" as const,
       priority: 0.8,
@@ -51,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     })),
     ...pages.map((p) => ({
-      url: `${siteUrl}/page/${p.slug}`,
+      url: `${siteUrl}${pagePath(p.slug)}`,
       lastModified: p.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.4,

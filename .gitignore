@@ -42,3 +42,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local databases / backups (never commit)
+/data/*.db
+/data/*.db-journal
+/backups/
+*.db
+*.sqlite
+*.sqlite3

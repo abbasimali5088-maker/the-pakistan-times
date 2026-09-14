@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-14  
 **Branch:** `main`  
-**Stack:** Next.js 15 + Prisma/SQLite + JWT session auth
+**Stack:** Next.js 15 + Prisma/PostgreSQL + JWT session auth
 
 ## Smoke tests (live)
 
