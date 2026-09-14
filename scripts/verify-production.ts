@@ -112,9 +112,44 @@ async function checkHttp() {
     );
     const dash = await httpJson("/api/dashboard", { headers: { Cookie: cookieHeader } });
     record("http.dashboard", dash.res.ok && (dash.json as { success?: boolean })?.success === true);
+
+    const settingsGet = await httpJson("/api/settings", { headers: { Cookie: cookieHeader } });
+    const settingsMap = (settingsGet.json as { data?: { settings?: { social?: Record<string, string> } } })?.data
+      ?.settings;
+    record(
+      "http.settings.get",
+      settingsGet.res.ok && !!settingsMap,
+      settingsMap?.social ? `social keys=${Object.keys(settingsMap.social).length}` : `status=${settingsGet.res.status}`,
+    );
+
+    const settingsSave = await httpJson("/api/settings", {
+      method: "PUT",
+      headers: { Cookie: cookieHeader },
+      body: JSON.stringify({
+        settings: {
+          social: {
+            ...(settingsMap?.social || {}),
+            facebook: settingsMap?.social?.facebook || "https://facebook.com/thepakistantimes",
+          },
+        },
+      }),
+    });
+    record(
+      "http.settings.save",
+      settingsSave.res.ok && (settingsSave.json as { success?: boolean })?.success === true,
+      `status=${settingsSave.res.status}`,
+    );
+
+    const adminSettings = await fetch(`${base}/admin/settings`, {
+      headers: { Cookie: cookieHeader },
+    });
+    record("http.admin.settings", adminSettings.status === 200, `status=${adminSettings.status}`);
   } else {
     record("http.auth.me", false, "no session cookie");
     record("http.dashboard", false, "skipped");
+    record("http.settings.get", false, "skipped");
+    record("http.settings.save", false, "skipped");
+    record("http.admin.settings", false, "skipped");
   }
 }
 
