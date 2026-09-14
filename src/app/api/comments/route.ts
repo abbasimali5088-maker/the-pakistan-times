@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
     const { skip, take, page, pageSize } = getPagination(url);
 
     if (publicOnly) {
-      if (!articleId) throw new Error("articleId required for public comments");
+      if (!articleId) {
+        return { items: [], total: 0, page, pageSize };
+      }
       const items = await prisma.comment.findMany({
         where: { articleId, status: "approved", parentId: null },
         include: {

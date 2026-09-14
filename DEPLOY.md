@@ -12,19 +12,20 @@
 
 1. [neon.tech](https://neon.tech) پر account بنائیں  
 2. New project → database بنائیں  
-3. **Connection string** کاپی کریں (SSL والا)  
-4. اگر Neon **pooled** اور **direct** دونوں دے تو:
-   - Vercel `DATABASE_URL` میں **pooled** URL استعمال کریں  
-   - migrations کے لیے کبھی کبھی direct URL چاہیے ہوتی ہے — Neon docs کے مطابق `?sslmode=require` رکھیں
+3. دو connection strings کاپی کریں:
+   - **Pooled** → `DATABASE_URL` (Vercel serverless کے لیے)
+   - **Direct** → `DIRECT_DATABASE_URL` (Prisma migrations کے لیے)
+4. دونوں میں `?sslmode=require` رکھیں
 
 ### Option 2 — Supabase / Vercel Postgres
 
-اسی طرح PostgreSQL connection string حاصل کریں۔
+اسی طرح pooled + direct URLs حاصل کریں۔ اگر صرف ایک URL ملے تو دونوں env vars میں وہی URL ڈالیں۔
 
 مثال شکل:
 
 ```
-postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
+DATABASE_URL="postgresql://USER:PASSWORD@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require"
+DIRECT_DATABASE_URL="postgresql://USER:PASSWORD@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
 ```
 
 ---
@@ -45,7 +46,8 @@ postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 
 | Name | Example / notes |
 |------|------------------|
-| `DATABASE_URL` | Neon/Supabase Postgres URL (`sslmode=require`) |
+| `DATABASE_URL` | Neon **pooled** URL (`sslmode=require`) |
+| `DIRECT_DATABASE_URL` | Neon **direct** URL (migrations) |
 | `JWT_SECRET` | لمبا random secret (مثلاً `openssl rand -hex 32`) |
 | `ADMIN_EMAIL` | آپ کا admin email |
 | `ADMIN_PASSWORD` | مضبوط پاس ورڈ (صرف پہلی seed کے لیے) |
@@ -64,7 +66,7 @@ postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 Deploy کریں۔ Build کے دوران:
 
 1. `prisma generate`  
-2. `prisma migrate deploy` (tables بنیں گی)  
+2. `prisma migrate deploy` (tables بنیں گی — `DIRECT_DATABASE_URL` استعمال ہوتا ہے)  
 3. `next build`
 
 ---
@@ -73,17 +75,14 @@ Deploy کریں۔ Build کے دوران:
 
 Vercel serverless پر seed خود نہیں چلتی۔ ایک بار چلائیں:
 
-### طریقہ 1 — Vercel CLI / local against production DB
-
 ```bash
-export DATABASE_URL="postgresql://...your-neon-url..."
+export DATABASE_URL="postgresql://...pooled-or-direct..."
+export DIRECT_DATABASE_URL="postgresql://...direct..."
 export ADMIN_EMAIL="admin@yourdomain.com"
 export ADMIN_PASSWORD="your-strong-password"
 export JWT_SECRET="same-as-vercel"
 npm run db:seed
 ```
-
-### طریقہ 2 — Neon SQL Editor نہیں؛ Node seed ہی استعمال کریں
 
 Seed roles، categories، menus، sample articles اور admin user بناتا ہے۔
 
@@ -107,14 +106,27 @@ Login:
 
 ---
 
-## F) Custom domain (اختیاری)
+## F) Local verification (deploy سے پہلے)
+
+```bash
+npm run db:deploy
+npm run db:seed
+npm run build
+npm run start
+# دوسری terminal:
+npm run verify:prod
+```
+
+---
+
+## G) Custom domain (اختیاری)
 
 Vercel → Project → **Domains** → اپنا domain لگائیں  
 پھر `NEXT_PUBLIC_SITE_URL` کو نئے domain پر update کرکے redeploy کریں۔
 
 ---
 
-## G) Verify checklist
+## H) Verify checklist
 
 - [ ] `/` اردو homepage کھلتی ہے  
 - [ ] `/admin/login` سے login ہوتا ہے  
@@ -122,6 +134,7 @@ Vercel → Project → **Domains** → اپنا domain لگائیں
 - [ ] `/api/health` → `{ status: "ok", database: "up" }`  
 - [ ] `/sitemap.xml` اور `/robots.txt` درست ہیں  
 - [ ] `?lang=en` / `?lang=ur` کام کرتے ہیں  
+- [ ] `/search?q=...` 200 دیتا ہے  
 
 ---
 
@@ -129,10 +142,11 @@ Vercel → Project → **Domains** → اپنا domain لگائیں
 
 | مسئلہ | حل |
 |------|-----|
-| Build: Prisma migrate fail | `DATABASE_URL` غلط / IP allowlist / SSL missing |
+| Build: Prisma migrate fail | `DIRECT_DATABASE_URL` غلط / pooler پر migrate / SSL missing |
 | Login cookie کام نہیں | `NEXT_PUBLIC_SITE_URL` https ہونا چاہیے؛ `COOKIE_SECURE` درست |
 | Empty site بعد از deploy | `npm run db:seed` production DB پر چلائیں |
 | 500 on APIs | Vercel Function logs دیکھیں؛ DB connectivity چیک کریں |
+| `JWT_SECRET must be set` | Vercel env میں `JWT_SECRET` ضرور ڈالیں |
 
 ---
 

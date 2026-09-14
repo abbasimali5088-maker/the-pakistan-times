@@ -84,16 +84,21 @@ export async function GET(req: NextRequest) {
     if (authorId) where.authorId = authorId;
     if (tag) where.tags = { some: { tag: { slug: tag } } };
     if (q) {
-      where.AND = [
-        {
-          OR: [
-            { title: { contains: q } },
-            { titleUr: { contains: q } },
-            { excerpt: { contains: q } },
-            { body: { contains: q } },
-          ],
-        },
-      ];
+      const searchOr = {
+        OR: [
+          { title: { contains: q, mode: "insensitive" as const } },
+          { titleUr: { contains: q, mode: "insensitive" as const } },
+          { excerpt: { contains: q, mode: "insensitive" as const } },
+          { excerptUr: { contains: q, mode: "insensitive" as const } },
+          { body: { contains: q, mode: "insensitive" as const } },
+          { bodyUr: { contains: q, mode: "insensitive" as const } },
+          { slug: { contains: q, mode: "insensitive" as const } },
+          { focusKeyword: { contains: q, mode: "insensitive" as const } },
+        ],
+      };
+      where.AND = Array.isArray(where.AND)
+        ? [...(where.AND as unknown[]), searchOr]
+        : [searchOr];
     }
 
     const [total, rows] = await Promise.all([

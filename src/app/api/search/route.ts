@@ -31,10 +31,13 @@ export async function GET(req: NextRequest) {
               }
             : {}),
           OR: [
-            { title: { contains: q } },
-            { titleUr: { contains: q } },
-            { excerpt: { contains: q } },
-            { body: { contains: q } },
+            { title: { contains: q, mode: "insensitive" } },
+            { titleUr: { contains: q, mode: "insensitive" } },
+            { excerpt: { contains: q, mode: "insensitive" } },
+            { excerptUr: { contains: q, mode: "insensitive" } },
+            { body: { contains: q, mode: "insensitive" } },
+            { bodyUr: { contains: q, mode: "insensitive" } },
+            { slug: { contains: q, mode: "insensitive" } },
           ],
         },
         select: { id: true, title: true, slug: true, status: true, language: true },
@@ -43,7 +46,7 @@ export async function GET(req: NextRequest) {
       prisma.author.findMany({
         where: {
           status: publicOnly ? "active" : undefined,
-          OR: [{ name: { contains: q } }, { slug: { contains: q } }, { bio: { contains: q } }],
+          OR: [{ name: { contains: q, mode: "insensitive" } }, { slug: { contains: q, mode: "insensitive" } }, { bio: { contains: q, mode: "insensitive" } }],
         },
         select: { id: true, name: true, slug: true },
         take: limit,
@@ -51,14 +54,14 @@ export async function GET(req: NextRequest) {
       prisma.category.findMany({
         where: {
           status: publicOnly ? "active" : undefined,
-          OR: [{ name: { contains: q } }, { slug: { contains: q } }, { nameUr: { contains: q } }],
+          OR: [{ name: { contains: q, mode: "insensitive" } }, { slug: { contains: q, mode: "insensitive" } }, { nameUr: { contains: q, mode: "insensitive" } }],
         },
         select: { id: true, name: true, slug: true },
         take: limit,
       }),
       prisma.tag.findMany({
         where: {
-          OR: [{ name: { contains: q } }, { slug: { contains: q } }, { nameUr: { contains: q } }],
+          OR: [{ name: { contains: q, mode: "insensitive" } }, { slug: { contains: q, mode: "insensitive" } }, { nameUr: { contains: q, mode: "insensitive" } }],
         },
         select: { id: true, name: true, slug: true },
         take: limit,
@@ -69,9 +72,9 @@ export async function GET(req: NextRequest) {
             where: {
               deletedAt: null,
               OR: [
-                { filename: { contains: q } },
-                { originalName: { contains: q } },
-                { alt: { contains: q } },
+                { filename: { contains: q, mode: "insensitive" } },
+                { originalName: { contains: q, mode: "insensitive" } },
+                { alt: { contains: q, mode: "insensitive" } },
               ],
             },
             select: { id: true, filename: true, url: true, type: true },
@@ -82,9 +85,9 @@ export async function GET(req: NextRequest) {
             where: {
               deletedAt: null,
               OR: [
-                { name: { contains: q } },
-                { email: { contains: q } },
-                { username: { contains: q } },
+                { name: { contains: q, mode: "insensitive" } },
+                { email: { contains: q, mode: "insensitive" } },
+                { username: { contains: q, mode: "insensitive" } },
               ],
             },
             select: { id: true, name: true, email: true, username: true },

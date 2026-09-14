@@ -32,7 +32,10 @@ export async function GET(req: NextRequest) {
 export async function POST(_req: NextRequest) {
   return handleApi(async () => {
     const user = await requirePermission("backup", "create");
-    const backupDir = path.join(process.cwd(), "backups");
+    const isServerless = process.env.VERCEL === "1" || process.env.AWS_LAMBDA_FUNCTION_NAME;
+    const backupDir = isServerless
+      ? path.join("/tmp", "pakistan-times-backups")
+      : path.join(process.cwd(), "backups");
     mkdirSync(backupDir, { recursive: true });
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     const dest = path.join(backupDir, `cms-${stamp}.sql`);
@@ -41,7 +44,7 @@ export async function POST(_req: NextRequest) {
     let note = "PostgreSQL logical backup";
     let status = "completed";
     let recordedPath = dest;
-    const dbUrl = process.env.DATABASE_URL || "";
+    const dbUrl = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL || "";
 
     try {
       if (!dbUrl.startsWith("postgres")) {
@@ -50,6 +53,9 @@ export async function POST(_req: NextRequest) {
 
       // Prefer pg_dump when available (local/VPS). On serverless, record metadata only.
       try {
+        if (isServerless) {
+          throw new Error("pg_dump skipped on serverless runtime");
+        }
         await execFileAsync("pg_dump", [dbUrl, "-f", dest, "--no-owner", "--no-acl"], {
           timeout: 120_000,
           env: process.env,

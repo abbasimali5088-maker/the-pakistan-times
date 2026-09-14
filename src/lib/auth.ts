@@ -7,8 +7,17 @@ import { permissionCode } from "./permissions";
 
 const COOKIE = "pt_session";
 
+function resolveJwtSecret() {
+  const secret = process.env.JWT_SECRET?.trim();
+  if (secret) return secret;
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL === "1") {
+    throw new Error("JWT_SECRET must be set in production");
+  }
+  return "dev-secret-local-only";
+}
+
 function secretKey() {
-  return new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret");
+  return new TextEncoder().encode(resolveJwtSecret());
 }
 
 export function hashToken(token: string) {
@@ -86,7 +95,9 @@ export async function getSessionUser() {
       username: user.username,
       name: user.name,
       roles,
+      // Keep Set for server-side `can()`; JSON responses should use `permissionsList`.
       permissions,
+      permissionsList: Array.from(permissions),
     };
   } catch {
     return null;

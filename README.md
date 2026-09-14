@@ -13,7 +13,7 @@ Professional **Frontend + Backend + Admin Panel + PostgreSQL + APIs** for **دی
 
 ### 1. PostgreSQL
 
-Create a database, then set `DATABASE_URL` in `.env` (see `.env.example`).
+Create a database, then set `DATABASE_URL` **and** `DIRECT_DATABASE_URL` in `.env` (see `.env.example`). Locally both can be the same Postgres URL.
 
 ```bash
 # example local DB
@@ -24,7 +24,7 @@ createdb pakistan_times
 
 ```bash
 cp .env.example .env
-# edit DATABASE_URL, JWT_SECRET, ADMIN_* 
+# edit DATABASE_URL, DIRECT_DATABASE_URL, JWT_SECRET, ADMIN_* 
 
 npm install
 npm run db:deploy
@@ -45,8 +45,10 @@ Open:
 |--------|-------------|
 | `npm run dev` | Dev server (port 4355) |
 | `npm run build` | Generate client + migrate + production build |
+| `npm run start` | Production server (port 4355) |
 | `npm run db:deploy` | Apply Prisma migrations (`migrate deploy`) |
 | `npm run db:seed` | Seed roles, categories, sample news |
+| `npm run verify:prod` | Smoke-test DB + auth + APIs against running server |
 | `npm run jobs:run` | Process due background jobs |
 
 ## Production / Vercel

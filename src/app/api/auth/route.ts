@@ -124,7 +124,15 @@ export async function DELETE() {
       try {
         const { payload } = await (
           await import("jose")
-        ).jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret"));
+        ).jwtVerify(
+          token,
+          new TextEncoder().encode(
+            process.env.JWT_SECRET ||
+              (process.env.NODE_ENV === "production" || process.env.VERCEL === "1"
+                ? ""
+                : "dev-secret-local-only"),
+          ),
+        );
         await destroySession(String(payload.sid || ""));
       } catch {
         /* ignore */
@@ -148,6 +156,13 @@ export async function DELETE() {
 export async function GET() {
   return handleApi(async () => {
     const user = await requireUser();
-    return { user };
+    const { permissions: _set, permissionsList, ...rest } = user;
+    void _set;
+    return {
+      user: {
+        ...rest,
+        permissions: permissionsList,
+      },
+    };
   });
 }

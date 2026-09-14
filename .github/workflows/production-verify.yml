@@ -1,0 +1,55 @@
+name: Production readiness
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pt_cms
+          POSTGRES_PASSWORD: pt_cms_dev
+          POSTGRES_DB: pakistan_times
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pt_cms -d pakistan_times"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://pt_cms:pt_cms_dev@localhost:5432/pakistan_times?schema=public
+      DIRECT_DATABASE_URL: postgresql://pt_cms:pt_cms_dev@localhost:5432/pakistan_times?schema=public
+      JWT_SECRET: ci-verify-secret-not-for-production
+      ADMIN_EMAIL: admin@thepakistantimes.local
+      ADMIN_PASSWORD: pak123
+      ADMIN_NAME: Super Admin
+      NEXT_PUBLIC_SITE_NAME_UR: دی پاکستان ٹائمز اردو
+      NEXT_PUBLIC_SITE_NAME_EN: The Pakistan Times
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:4355
+      NEXT_PUBLIC_API_BASE: /api
+      COOKIE_SECURE: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npm run db:seed
+      - run: npm run build
+      - run: npm run start &
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:4355/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo "Server did not become ready"; exit 1
+      - run: npm run verify:prod

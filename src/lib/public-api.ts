@@ -21,11 +21,13 @@ type ApiEnvelope<T> = {
 };
 
 function siteBaseUrl() {
-  const raw =
+  const configured =
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.SITE_URL ||
-    "http://127.0.0.1:4321";
-  return raw.replace(/\/$/, "");
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
+  if (configured) return configured.replace(/\/$/, "");
+  const port = process.env.PORT || "4355";
+  return `http://127.0.0.1:${port}`;
 }
 
 function apiBase() {
@@ -234,9 +236,8 @@ export async function getPage(slug: string) {
 
 export async function getSearch(q: string, page = 1) {
   if (!q.trim()) return emptyPage<PublicArticle>();
-  return publicFetch<Paginated<PublicArticle>>(`/search${qs({ q, public: 1, page })}`, {
-    fallback: await getArticles({ q, page }),
-  });
+  // Public search page needs full article cards; use articles API (paginated).
+  return getArticles({ q, page });
 }
 
 export async function getLiveStories() {

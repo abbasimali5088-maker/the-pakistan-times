@@ -16,7 +16,10 @@ export default async function SearchPage({
   const lang = await getRequestLang(sp);
   const q = (sp.q || "").trim();
   const page = Math.max(1, Number(sp.page || 1));
-  const data = q ? await getSearch(q, page) : { items: [], page: 1, totalPages: 0, total: 0 };
+  const data = q
+    ? await getSearch(q, page)
+    : { items: [] as Awaited<ReturnType<typeof getSearch>>["items"], page: 1, totalPages: 0, total: 0 };
+  const items = data?.items || [];
 
   return (
     <div>
@@ -34,7 +37,7 @@ export default async function SearchPage({
               : "Search by headline, topic, or place."
           }
         />
-      ) : data.items.length === 0 ? (
+      ) : items.length === 0 ? (
         <EmptyState
           lang={lang}
           title={lang === "ur" ? "کوئی نتیجہ نہیں" : "No results"}
@@ -48,11 +51,11 @@ export default async function SearchPage({
         <>
           <p className="meta mb-4">
             {lang === "ur"
-              ? `${data.total || data.items.length} نتائج`
-              : `${data.total || data.items.length} results`}
+              ? `${data.total || items.length} نتائج`
+              : `${data.total || items.length} results`}
           </p>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {data.items.map((article) => (
+            {items.map((article) => (
               <ArticleCard key={article.id} article={article} lang={lang} variant="medium" />
             ))}
           </div>

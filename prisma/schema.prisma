@@ -3,8 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Neon pooled URL goes in DATABASE_URL; put the direct (non-pooler) URL here for migrations.
+  // Locally both can be the same connection string.
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model Site {
