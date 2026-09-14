@@ -261,14 +261,18 @@ export function AdminPanel({
   children,
   className,
   title,
+  description,
 }: {
   children: ReactNode;
   className?: string;
   title?: string;
+  description?: string;
 }) {
   return (
     <section className={cn("rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:p-5", className)}>
-      {title ? <h2 className="mb-4 text-sm font-semibold text-slate-800">{title}</h2> : null}
+      {title ? <h2 className="mb-1 text-sm font-semibold text-slate-800">{title}</h2> : null}
+      {description ? <p className="mb-3 text-xs text-slate-500">{description}</p> : null}
+      {title ? <div className={description ? "mb-1" : "mb-4"} /> : null}
       {children}
     </section>
   );

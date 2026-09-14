@@ -10,13 +10,21 @@ export function Header({
   lang,
   menuItems,
   categories,
+  taglineUr,
+  taglineEn,
 }: {
   lang: Lang;
   menuItems: MenuItem[];
   categories: PublicCategory[];
+  taglineUr?: string;
+  taglineEn?: string;
 }) {
   const brand = brandName(lang);
   const newsWord = lang === "ur" ? "خبریں" : "NEWS";
+  const tagline =
+    lang === "ur"
+      ? taglineUr || "آزاد، حقیقت پر مبنی صحافت"
+      : taglineEn || "Independent reporting from the newsroom";
 
   return (
     <header className="site-header">
@@ -29,11 +37,7 @@ export function Header({
         <Link href="/" className="brand-lockup inline-block text-[var(--ink)]">
           <span className="text-[var(--accent)]">{brand}</span>
         </Link>
-        <p className="meta mx-auto mt-2 max-w-xl">
-          {lang === "ur"
-            ? "آزاد، حقیقت پر مبنی صحافت"
-            : "Independent reporting from the newsroom"}
-        </p>
+        <p className="meta mx-auto mt-2 max-w-xl">{tagline}</p>
       </div>
 
       <div className="bg-[var(--accent)] text-white">

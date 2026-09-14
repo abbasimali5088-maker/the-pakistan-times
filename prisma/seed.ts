@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { ACTIONS, MODULES, ROLE_DEFS, permissionCode } from "../src/lib/permissions";
+import { seedSettingRows } from "../src/lib/site-settings";
 import { makeSlug } from "../src/lib/slug";
 
 const prisma = new PrismaClient();
@@ -189,37 +190,20 @@ async function main() {
     });
   }
 
-  const settings: Array<[string, string, string]> = [
-    ["general", "site_name_ur", "دی پاکستان ٹائمز اردو"],
-    ["general", "site_name_en", "The Pakistan Times"],
-    ["general", "description", "پاکستان اور دنیا کی تازہ ترین خبریں"],
-    ["general", "language", "ur"],
-    ["general", "timezone", "Asia/Karachi"],
-    ["general", "date_format", "dd MMM yyyy"],
-    ["publishing", "default_author_id", author.id],
-    ["publishing", "default_category_id", categories.pakistan],
-    ["seo", "default_title", "دی پاکستان ٹائمز اردو"],
-    ["seo", "default_description", "خبریں، تجزیے، لائیو کوریج"],
-    ["seo", "robots", "User-agent: *\nAllow: /\nSitemap: /sitemap.xml"],
-    ["social", "facebook", ""],
-    ["social", "twitter", ""],
-    ["social", "youtube", ""],
-    ["email", "smtp_host", ""],
-    ["integrations", "ga_measurement_id", ""],
-    ["integrations", "search_console_enabled", "false"],
-    ["media", "upload_max_mb", process.env.UPLOAD_MAX_MB || "10"],
-    ["media", "allowed_formats", "jpg,jpeg,png,webp,avif,gif,mp4,mp3,pdf,doc,docx,xls,xlsx"],
-    ["theme", "accent", "#0B7A3B"],
-    ["theme", "font", "serif"],
-    // Preserve prototype custom code keys
-    ["custom", "css", ""],
-    ["custom", "html", ""],
-  ];
+  const settings = seedSettingRows({
+    defaultAuthorId: author.id,
+    defaultCategoryId: categories.pakistan,
+    uploadMaxMb: process.env.UPLOAD_MAX_MB || "10",
+  });
 
   for (const [group, key, value] of settings) {
     await prisma.setting.upsert({
       where: { siteId_group_key: { siteId: site.id, group, key } },
-      update: { value },
+      // Don't wipe editor-entered social/contact URLs on re-seed
+      update:
+        group === "social" || group === "general" || group === "footer"
+          ? {}
+          : { value },
       create: { siteId: site.id, group, key, value },
     });
   }
