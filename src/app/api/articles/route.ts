@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { handleApi, getPagination } from "@/lib/api";
-import { requirePermission, can, getSessionUser } from "@/lib/auth";
+import { requirePermission, can } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
 import { makeSlug, uniqueSlug } from "@/lib/slug";

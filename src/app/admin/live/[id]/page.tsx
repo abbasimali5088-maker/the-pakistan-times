@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AdminPageHeader, AdminPanel } from "@/components/admin/AdminShell";
 import { DataTable } from "@/components/admin/DataTable";
-import { FormField, TextInput, TextSelect, TextTextarea } from "@/components/admin/FormField";
+import { FormField, TextSelect, TextTextarea } from "@/components/admin/FormField";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { adminFetch, AdminApiError } from "@/lib/admin-fetch";
