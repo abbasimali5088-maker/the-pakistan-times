@@ -1,5 +1,16 @@
 # Production Deploy Guide — دی پاکستان ٹائمز اردو
 
+## Status (verified in this environment)
+
+Project code is **production-ready** for GitHub → Neon PostgreSQL → Vercel:
+
+- PostgreSQL only (no SQLite)
+- `prisma migrate deploy` on build (`vercel-build`)
+- Auth, Admin, APIs, Settings/social, SEO verified locally (`npm run verify:prod` → all checks pass)
+- `vercel.json`, `.env.example`, Prisma `directUrl` + Vercel binary target ready
+
+**What still needs your accounts (cannot be done without Neon/Vercel login):** create Neon DB, create/import GitHub repo on Vercel, paste env vars, deploy, run one-time `npm run db:seed` against production DB.
+
 اس گائیڈ کے بعد آپ کے پاس **Live Website + Admin Panel + PostgreSQL + APIs** ہوں گے۔
 
 ---
