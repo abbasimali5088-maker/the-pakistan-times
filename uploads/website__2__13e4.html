@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Pakistan Times</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --red:#0B7A3B; --black:#141414; --gray:#5a5a5a; --border:#dedede; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family: var(--body-serif, Georgia, 'Times New Roman', serif); color: var(--text-color, #141414); background: var(--bg-color, #fff); line-height:1.5; font-size: var(--font-scale, 16px);}
+  body.font-sans{font-family: Arial, Helvetica, sans-serif;}
+  body.dark{ --text-color:#eee; --bg-color:#181818; --border:#333; --gray:#aaa; }
+  body.dark .card, body.dark .side-story, body.dark .panel{ background:#222; }
+  body.dark input, body.dark select, body.dark textarea{ background:#2a2a2a; color:#eee; border-color:#444; }
+  body.ur{font-family: 'Noto Nastaliq Urdu', serif; direction:rtl; line-height:2;}
+  a{color:inherit; text-decoration:none;}
+
+  .topbar{background:var(--black); color:#fff; font-family: Arial, sans-serif; font-size:12px; padding:6px 20px; display:flex; justify-content:space-between; align-items:center;}
+  .lang-switch{display:flex; gap:6px;}
+  .lang-switch button{font-family: Arial, sans-serif; background:transparent; border:1px solid #666; color:#fff; font-size:11px; padding:3px 10px; border-radius:3px; cursor:pointer;}
+  .lang-switch button.active{background:var(--red); border-color:var(--red); font-weight:bold;}
+
+  .ticker-wrap{background:#fff3f3; border-bottom:1px solid var(--border); overflow:hidden; white-space:nowrap; padding:8px 0;}
+  .ticker-wrap .ticker-label{display:inline-block; background:var(--red); color:#fff; font-family:Arial, sans-serif; font-size:11px; font-weight:bold; padding:3px 10px; margin-right:12px; text-transform:uppercase; vertical-align:middle;}
+  .ticker-track{display:inline-block; animation: scroll-left 25s linear infinite; font-family:Arial, sans-serif; font-size:14px; vertical-align:middle;}
+  .ticker-track span{margin-right:40px;}
+  @keyframes scroll-left{ 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+
+  .brand-bar{background:#fff; padding:14px 0; text-align:center; border-bottom:1px solid var(--border);}
+  .brand-bar .logo-boxes{display:inline-flex; gap:4px;}
+  .brand-bar .logo-boxes span{background:var(--black); color:#fff; font-family:Arial, sans-serif; font-weight:900; font-size:26px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:2px;}
+  body.ur .brand-bar .logo-boxes span{font-family:'Noto Nastaliq Urdu', serif;}
+
+  .news-strip{background:var(--red); color:#fff; font-family:Arial, sans-serif;}
+  body.ur .news-strip{font-family:'Noto Nastaliq Urdu', serif;}
+  .news-strip-top{display:flex; justify-content:flex-end; align-items:center; padding:10px 20px; border-bottom:1px solid rgba(255,255,255,0.3);}
+  .news-strip-top .news-word{font-size:22px; font-weight:900; margin-right:8px;}
+  body.ur .news-strip-top .news-word{margin-right:0; margin-left:8px;}
+  .news-strip-top .site-word{font-size:20px; font-weight:400;}
+  .news-strip-bottom{display:flex; justify-content:space-between; align-items:center; padding:10px 20px;}
+  .hamburger{font-size:20px; cursor:pointer;}
+  .news-strip-bottom .links{display:flex; gap:18px; font-size:14px; font-weight:bold;}
+  .news-strip-bottom .links a{cursor:pointer;}
+
+  .category-row{background:#fff; border-bottom:1px solid var(--border); overflow-x:auto; white-space:nowrap;}
+  .category-row ul{list-style:none; display:inline-flex; padding:0 10px;}
+  .category-row li a{display:block; padding:12px 14px; font-size:14px; font-weight:bold; color:var(--black); cursor:pointer; font-family:Arial, sans-serif;}
+  body.ur .category-row li a{font-family:'Noto Nastaliq Urdu', serif; font-size:16px;}
+  .category-row li a:hover{color:var(--red);}
+  .search-box{flex-shrink:0;}
+  .search-box input{font-family: Arial, sans-serif; padding:8px 12px; border:1px solid var(--border); border-radius:4px; width:200px;}
+  .logo{font-size:30px; font-weight:bold; font-family: Arial, sans-serif; cursor:pointer;}
+  body.ur .logo{font-family:'Noto Nastaliq Urdu', serif; font-size:32px;}
+  .logo span{color:var(--red);}
+
+  nav{background:var(--black); font-family: Arial, sans-serif;}
+  body.ur nav{font-family:'Noto Nastaliq Urdu', serif;}
+  nav ul{list-style:none; display:flex; flex-wrap:wrap; max-width:var(--main-width, 1200px); margin:0 auto;}
+  nav li a{display:block; color:#fff; padding:12px 18px; font-size:14px; font-weight:bold; cursor:pointer;}
+  body.ur nav li a{font-size:16px;}
+  nav li a:hover{background:var(--red);}
+  nav li a.admin-link{margin-left:auto; opacity:0.6;}
+
+  main{max-width:var(--main-width, 1200px); margin:0 auto; padding:24px 20px;}
+
+  .hero{display:grid; grid-template-columns: 2fr 1fr; gap:24px; padding-bottom:24px; border-bottom:1px solid var(--border); margin-bottom:24px;}
+  .hero-main img, .side-story img{width:100%; height:320px; object-fit:cover; display:block;}
+  .hero-main .tag, .side-story .tag, .card .tag{display:inline-block; background:var(--red); color:#fff; font-family: Arial, sans-serif; font-size:11px; font-weight:bold; text-transform:uppercase; padding:3px 8px; margin:12px 0 8px;}
+  .hero-main{cursor:pointer;}
+  .hero-main h1{font-size:30px; line-height:1.2; margin-bottom:10px;}
+  body.ur .hero-main h1{font-size:28px; line-height:1.6;}
+  .hero-main p{color:var(--gray); font-size:16px;}
+  .side-stories{display:flex; flex-direction:column; gap:18px;}
+  .side-story{cursor:pointer;}
+  .side-story h3{font-size:17px; line-height:1.3; margin-bottom:4px;}
+  .side-story img{height:110px;}
+
+  .section-title{font-family: Arial, sans-serif; font-size:20px; font-weight:bold; border-bottom:2px solid var(--text-color, var(--black)); padding-bottom:8px; margin-bottom:16px;}
+  body.ur .section-title{font-family:'Noto Nastaliq Urdu', serif; font-size:24px;}
+
+  .grid{display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; margin-bottom:32px;}
+  .card{cursor:pointer;}
+  .card img{width:100%; height:160px; object-fit:cover;}
+  .card h3{font-size:18px; margin:8px 0 6px; line-height:1.3;}
+  .card p{color:var(--gray); font-size:14px;}
+  .card .meta{font-family: Arial, sans-serif; font-size:12px; color:#999; margin-top:6px;}
+  body.ur .card .meta{font-family:'Noto Nastaliq Urdu', serif; font-size:13px;}
+
+  /* Article view */
+  #view-article{max-width:800px; margin:0 auto;}
+  .back{display:inline-block; font-family:Arial, sans-serif; font-size:13px; color:var(--red); margin-bottom:20px; font-weight:bold; cursor:pointer;}
+  h1.a-title{font-size:32px; line-height:1.25; margin-bottom:12px;}
+  body.ur h1.a-title{font-size:30px; line-height:1.8;}
+  .a-meta{font-family:Arial, sans-serif; font-size:13px; color:#999; margin-bottom:20px;}
+  .a-cover img{width:100%; height:400px; object-fit:cover; border-radius:4px; margin-bottom:24px;}
+  .a-body p{font-size:18px; color:#222; margin-bottom:18px; white-space:pre-line;}
+  .not-found{font-family:Arial, sans-serif; text-align:center; padding:60px 20px; color:var(--gray);}
+
+  /* Admin view */
+  #view-admin{font-family: Arial, sans-serif;}
+  .panel{background:#f8f8f8; border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:24px;}
+  .panel h2{font-size:16px; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:8px;}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
+  .field{display:flex; flex-direction:column; gap:4px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:12px; color:var(--gray); font-weight:bold;}
+  .field input, .field select, .field textarea{padding:9px; border:1px solid var(--border); border-radius:4px; font-family:Arial, sans-serif; font-size:14px;}
+  .field textarea{resize:vertical; min-height:60px;}
+  .admin-btn{background:var(--red); color:#fff; border:none; padding:10px 20px; border-radius:4px; font-size:14px; font-weight:bold; cursor:pointer;}
+  .admin-btn.secondary{background:#666;}
+  .admin-btn.danger{background:#333;}
+  .btn-row{display:flex; gap:10px;}
+  .admin-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .admin-table th, .admin-table td{text-align:left; padding:10px; border-bottom:1px solid var(--border);}
+  .admin-table th{color:var(--gray); font-size:12px; text-transform:uppercase;}
+  .admin-table td img{width:50px; height:36px; object-fit:cover; border-radius:3px;}
+  .admin-table .actions button, .admin-table .actions a{padding:5px 10px; font-size:12px; margin-right:4px;}
+  .empty-msg{color:var(--gray); text-align:center; padding:30px; font-size:14px;}
+  .save-msg{display:none; background:#e6f7e6; color:#1a7a1a; padding:10px 14px; border-radius:4px; margin-bottom:14px; font-size:13px;}
+
+  .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#141414; color:#fff; font-family:Arial, sans-serif; font-size:14px; padding:12px 22px; border-radius:6px; z-index:999; display:none; box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+  .modal-overlay{position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:998;}
+  .modal-box{background:#fff; padding:28px; border-radius:8px; width:320px; font-family:Arial, sans-serif; text-align:center;}
+  .modal-box h3{margin-bottom:14px; font-size:16px;}
+  .modal-box input{width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; margin-bottom:10px; font-family:Arial, sans-serif;}
+  .modal-box .error-text{color:var(--red); font-size:12px; margin-bottom:8px; display:none;}
+  .inline-confirm{background:#fff3f3; border:1px solid var(--red); padding:8px; border-radius:4px; font-size:12px; margin-top:6px;}
+  .inline-confirm button{margin-right:6px; font-size:11px; padding:4px 10px;}
+
+  footer{background:var(--black); color:#ccc; font-family: Arial, sans-serif; font-size:13px; text-align:center; padding:24px; margin-top:40px;}
+
+  .whatsapp-banner{display:flex; align-items:center; gap:16px; background:#e9f9ee; border:1px solid #25D366; border-radius:8px; padding:18px 20px; margin:10px 0 32px;}
+  .whatsapp-banner .wa-icon{font-size:32px;}
+  .whatsapp-banner strong{font-family:Arial, sans-serif; font-size:16px; display:block; margin-bottom:2px;}
+  .whatsapp-banner p{font-family:Arial, sans-serif; font-size:13px; color:var(--gray); margin:0;}
+  .whatsapp-banner a{margin-left:auto; background:#25D366; color:#fff; font-family:Arial, sans-serif; font-weight:bold; font-size:14px; padding:9px 18px; border-radius:20px; white-space:nowrap;}
+  body.ur .whatsapp-banner a{margin-left:0; margin-right:auto;}
+
+  .footer-links{display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-top:10px; font-family:Arial, sans-serif; font-size:12px;}
+  .footer-links a{cursor:pointer; opacity:0.8;}
+  .footer-links a:hover{opacity:1; text-decoration:underline;}
+
+  #view-page{max-width:800px; margin:0 auto; font-family:Arial, sans-serif;}
+  body.ur #view-page{font-family:'Noto Nastaliq Urdu', serif;}
+  #view-page h1{font-size:26px; margin-bottom:16px;}
+  #view-page p{margin-bottom:14px; color:#333; line-height:1.7; font-size:15px;}
+  body.ur #view-page p{font-size:17px;}
+  body.ur footer{font-family:'Noto Nastaliq Urdu', serif; font-size:15px;}
+
+  @media (max-width: 800px){
+    .hero{grid-template-columns:1fr;}
+    .grid{grid-template-columns:1fr;}
+    .row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="brand-bar">
+    <div class="logo-boxes" id="logo-boxes" onclick="location.hash='#home'" style="cursor:pointer;"></div>
+  </div>
+
+  <div class="news-strip">
+    <div class="news-strip-top">
+      <span class="news-word">NEWS</span>
+      <span class="site-word" id="site-word"></span>
+    </div>
+    <div class="news-strip-bottom">
+      <span class="hamburger" onclick="toggleMobileMenu()">☰</span>
+      <div class="links">
+        <a onclick="location.hash='#home'" id="home-link-text"></a>
+      </div>
+      <input type="text" id="search-input" placeholder="Search..." onkeydown="if(event.key==='Enter') doSearch()" style="width:130px; padding:6px 10px; border-radius:4px; border:none; font-family:Arial, sans-serif; font-size:13px;">
+      <div class="lang-switch">
+        <button id="btn-en" class="active" onclick="setLang('en')">English</button>
+        <button id="btn-ur" onclick="setLang('ur')">اردو</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-row"><ul id="nav-list"></ul></div>
+
+  <div class="ticker-wrap">
+    <span class="ticker-label" id="ticker-label">Breaking</span>
+    <span class="ticker-track" id="ticker-track"></span>
+  </div>
+
+  <main>
+
+    <div id="view-home">
+      <section class="hero">
+        <div class="hero-main" id="hero-link">
+          <img src="https://images.unsplash.com/photo-1495020689067-958852a7765e?w=900&h=500&fit=crop" alt="top story">
+          <span class="tag" id="hero-tag"></span>
+          <h1 id="hero-title"></h1>
+          <p id="hero-desc"></p>
+        </div>
+        <div class="side-stories" id="side-stories"></div>
+      </section>
+
+      <div class="section-title" id="latest-title"></div>
+      <div class="grid" id="latest-grid"></div>
+
+      <div class="whatsapp-banner">
+        <span class="wa-icon">📱</span>
+        <div>
+          <strong id="wa-title">Follow us on WhatsApp</strong>
+          <p id="wa-sub">Get breaking news straight to your phone.</p>
+        </div>
+        <a id="wa-btn" href="https://whatsapp.com/channel/YOUR_CHANNEL_LINK" target="_blank">Follow</a>
+      </div>
+
+      <div class="section-title" id="sports-title"></div>
+      <div class="grid" id="sports-grid"></div>
+    </div>
+
+    <div id="view-list" style="display:none;">
+      <div class="section-title" id="list-title"></div>
+      <div class="grid" id="list-grid"></div>
+      <p id="list-empty" style="display:none; font-family:Arial, sans-serif; color:var(--gray); padding:20px 0;"></p>
+    </div>
+
+    <div id="view-article" style="display:none;">
+      <a class="back" id="back-link" onclick="location.hash='#home'">&larr; Back to home</a>
+      <div id="article-container"></div>
+    </div>
+
+    <div id="view-page" style="display:none;">
+      <a class="back" onclick="location.hash='#home'" style="cursor:pointer;">← <span id="page-back-text">Back to home</span></a>
+      <div id="page-content"></div>
+    </div>
+
+    <div id="view-admin" style="display:none;">
+      <div class="panel">
+        <h2 id="theme-heading">Website settings (theme)</h2>
+        <div class="row">
+          <div class="field"><label>Site name (English)</label><input type="text" id="theme-name-en" placeholder="The Pakistan Times"></div>
+          <div class="field"><label>Site name (Urdu)</label><input type="text" id="theme-name-ur" placeholder="پاکستان ٹائمز"></div>
+          <div class="field"><label>Logo image URL (optional)</label><input type="text" id="theme-logo" placeholder="https://... (leave empty for text logo)"></div>
+          <div class="field">
+            <label>Theme color</label>
+            <input type="color" id="theme-color" value="#0B7A3B" oninput="previewColor()">
+          </div>
+          <div class="field">
+            <label>Font style</label>
+            <select id="theme-font">
+              <option value="serif">Classic (Serif — newspaper style)</option>
+              <option value="sans">Modern (Sans-serif)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Font size</label>
+            <select id="theme-fontsize">
+              <option value="small">Small</option>
+              <option value="normal" selected>Normal</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Page width</label>
+            <select id="theme-width">
+              <option value="1200">Normal</option>
+              <option value="1400">Wide</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Header style</label>
+            <select id="theme-header">
+              <option value="left">Left-aligned logo</option>
+              <option value="center">Centered logo</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Dark mode</label>
+            <select id="theme-dark">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+          </div>
+        </div>
+        <button class="admin-btn" onclick="saveTheme()">Save settings</button>
+        <button class="admin-btn secondary" onclick="changeAdminPassword()">Change admin password</button>
+      </div>
+      <div class="panel">
+        <h2 id="form-heading">Add news article</h2>
+        <div class="save-msg" id="save-msg">Saved.</div>
+        <input type="hidden" id="edit-id">
+        <div class="row">
+          <div class="field"><label>Title (English)</label><input type="text" id="title-en"></div>
+          <div class="field"><label>Title (Urdu)</label><input type="text" id="title-ur"></div>
+          <div class="field full"><label>Excerpt / Summary (English)</label><textarea id="excerpt-en"></textarea></div>
+          <div class="field full"><label>Excerpt / Summary (Urdu)</label><textarea id="excerpt-ur"></textarea></div>
+          <div class="field full"><label>Full article (English)</label><textarea id="body-en" style="min-height:100px;"></textarea></div>
+          <div class="field full"><label>Full article (Urdu)</label><textarea id="body-ur" style="min-height:100px;"></textarea></div>
+          <div class="field">
+            <label>Category</label>
+            <select id="category">
+              <option>Pakistan</option><option>World</option><option>Business</option>
+              <option>Sports</option><option>Entertainment</option><option>Technology</option>
+            </select>
+          </div>
+          <div class="field"><label>Image URL</label><input type="text" id="image" placeholder="https://..."></div>
+        </div>
+        <div class="btn-row">
+          <button class="admin-btn" onclick="saveNews()" id="save-btn">Publish news</button>
+          <button class="admin-btn secondary" onclick="resetForm()" id="cancel-btn" style="display:none;">Cancel edit</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Published news (<span id="count">0</span>)</h2>
+        <table class="admin-table">
+          <thead><tr><th>Image</th><th>Title</th><th>Category</th><th>Actions</th></tr></thead>
+          <tbody id="news-table"></tbody>
+        </table>
+        <div class="empty-msg" id="empty-msg" style="display:none;">No news published yet.</div>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="custom-html-slot"></div>
+
+  <footer id="footer-text"></footer>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="password-modal" style="display:none;">
+    <div class="modal-box">
+      <h3 id="pw-modal-title">Enter admin password</h3>
+      <div class="error-text" id="pw-error">Wrong password.</div>
+      <input type="password" id="pw-input" placeholder="Password">
+      <div class="btn-row" style="justify-content:center;">
+        <button class="admin-btn" onclick="submitPassword()">Enter</button>
+        <button class="admin-btn secondary" onclick="cancelPasswordModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /* ---------- DATA ---------- */
+  const content = {
+    en: {
+      logo1: "The Pakistan", logo2: " Times",
+      nav: ["Home","Pakistan","World","Business","Sports","Entertainment","Technology"],
+      heroTag: "Breaking",
+      heroTitle: "Major economic reform package announced, markets react positively",
+      heroDesc: "Government unveils a new set of measures aimed at stabilizing prices and boosting investor confidence across key sectors.",
+      heroId: "d1",
+      heroBody: "The government today announced a sweeping economic reform package designed to stabilize prices and restore investor confidence across key sectors of the economy. Officials say the measures include targeted subsidies, tax relief for small businesses, and new incentives for foreign investment.\n\nMarket analysts reacted positively to the announcement, with the stock exchange posting gains within hours of the news.",
+      side: [
+        {id:"d2", tag:"World", title:"Regional leaders meet to discuss trade cooperation", img:"https://images.unsplash.com/photo-1523995462485-3d171b5c8fa9?w=400&h=220&fit=crop", body:"Senior officials from several neighboring countries met this week to discuss expanding regional trade cooperation, focusing on tariffs and cross-border logistics."},
+        {id:"d3", tag:"Sports", title:"National team secures win in decisive match", img:"https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=220&fit=crop", body:"The national team secured a crucial victory in front of a packed home crowd, keeping their qualification hopes alive."}
+      ],
+      latestTitle: "Latest News", sportsTitle: "Sports",
+      latest: [
+        {id:"d4", title:"Heavy rainfall forecast across northern regions this week", excerpt:"Meteorological department issues alert as monsoon system intensifies.", img:"https://images.unsplash.com/photo-1428592953211-077101b2021b?w=500&h=300&fit=crop", tag:"Pakistan", time:"2 hours ago", body:"The meteorological department has issued a weather alert for the northern regions, warning of heavy rainfall over the coming days as the monsoon system intensifies."},
+        {id:"d5", title:"Tech firms report record quarterly growth", excerpt:"Analysts point to rising demand for cloud services and AI tools.", img:"https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&h=300&fit=crop", tag:"Business", time:"4 hours ago", body:"Several leading technology firms reported record quarterly earnings, driven largely by rising demand for cloud computing and AI tools."},
+        {id:"d6", title:"New health initiative launched in rural districts", excerpt:"Program aims to expand access to basic medical care nationwide.", img:"https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500&h=300&fit=crop", tag:"Health", time:"6 hours ago", body:"A new health initiative has been launched to expand access to basic medical care in rural districts across the country."}
+      ],
+      sports: [
+        {id:"d7", title:"Star player extends contract for three more years", excerpt:"Club confirms the deal following months of speculation.", img:"https://images.unsplash.com/photo-1517649763962-0c623066013b?w=500&h=300&fit=crop", tag:"Football", time:"1 hour ago", body:"The club has confirmed that its star player has signed a contract extension, committing to the team for three more years."},
+        {id:"d8", title:"Underdog team stuns favorites in quarter-final upset", excerpt:"A late goal sealed a memorable night for the visiting side.", img:"https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500&h=300&fit=crop", tag:"Football", time:"3 hours ago", body:"In one of the biggest upsets of the tournament so far, the underdog side defeated the favorites thanks to a dramatic late goal."},
+        {id:"d9", title:"Young athlete breaks national record", excerpt:"Coaches say the performance signals a bright future ahead.", img:"https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500&h=300&fit=crop", tag:"Athletics", time:"5 hours ago", body:"A young athlete broke the national record in her event this weekend, delivering a performance that coaches say signals a bright future."}
+      ],
+      footer: "© 2026 The Pakistan Times. All rights reserved.",
+      backLink: "Back to home", notFound:"Article not found.", notFoundSub:"It may have been removed.",
+      waTitle: "Follow us on WhatsApp", waSub: "Get breaking news straight to your phone.", waBtn: "Follow",
+      footerLinks: ["About Us","Contact","Privacy Policy","Terms of Use"],
+      pages: {
+        about: {title:"About Us", body:"The Pakistan Times is an independent digital news platform bringing you timely, accurate coverage of Pakistan and the world.\n\nOur team is committed to fair, balanced reporting across politics, business, sports, and culture."},
+        contact: {title:"Contact Us", body:"Have a tip, question, or feedback? We would love to hear from you.\n\nEmail: contact@example.com\nAddress: Islamabad, Pakistan"},
+        privacy: {title:"Privacy Policy", body:"We respect your privacy. This website does not sell your personal data to third parties.\n\nAny information you submit through contact forms is used solely to respond to your inquiry."},
+        terms: {title:"Terms of Use", body:"By using this website, you agree to use its content for personal, non-commercial purposes.\n\nAll articles are the property of The Pakistan Times unless otherwise stated."}
+      }
+    },
+    ur: {
+      logo1: "پاکستان", logo2: " ٹائمز",
+      nav: ["ہوم","پاکستان","دنیا","کاروبار","کھیل","انٹرٹینمنٹ","ٹیکنالوجی"],
+      heroTag: "بریکنگ",
+      heroTitle: "اہم معاشی اصلاحات کے پیکج کا اعلان، مارکیٹ کا مثبت ردعمل",
+      heroDesc: "حکومت نے قیمتوں میں استحکام اور اہم شعبوں میں سرمایہ کاروں کا اعتماد بڑھانے کے لیے نئے اقدامات کا اعلان کر دیا۔",
+      heroId: "d1",
+      heroBody: "حکومت نے آج قیمتوں میں استحکام اور معیشت کے اہم شعبوں میں سرمایہ کاروں کا اعتماد بحال کرنے کے لیے ایک وسیع معاشی اصلاحاتی پیکج کا اعلان کیا۔\n\nمارکیٹ ماہرین نے اس اعلان پر مثبت ردعمل دیا، اور اسٹاک ایکسچینج میں چند گھنٹوں کے اندر ہی تیزی دیکھی گئی۔",
+      side: [
+        {id:"d2", tag:"دنیا", title:"علاقائی رہنماؤں کی تجارتی تعاون پر بات چیت", img:"https://images.unsplash.com/photo-1523995462485-3d171b5c8fa9?w=400&h=220&fit=crop", body:"خطے کے کئی ہمسایہ ممالک کے اعلیٰ حکام نے اس ہفتے علاقائی تجارتی تعاون بڑھانے کے لیے ملاقات کی۔"},
+        {id:"d3", tag:"کھیل", title:"قومی ٹیم کی فیصلہ کن میچ میں کامیابی", img:"https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=220&fit=crop", body:"قومی ٹیم نے کھچا کھچ بھرے ہوم گراؤنڈ کے سامنے ایک اہم کامیابی حاصل کی۔"}
+      ],
+      latestTitle: "تازہ ترین خبریں", sportsTitle: "کھیل",
+      latest: [
+        {id:"d4", title:"شمالی علاقوں میں اس ہفتے شدید بارش کا امکان", excerpt:"مون سون کا نظام شدت اختیار کرنے پر محکمہ موسمیات نے الرٹ جاری کر دیا۔", img:"https://images.unsplash.com/photo-1428592953211-077101b2021b?w=500&h=300&fit=crop", tag:"پاکستان", time:"2 گھنٹے پہلے", body:"محکمہ موسمیات نے شمالی علاقوں کے لیے موسمی الرٹ جاری کیا ہے۔"},
+        {id:"d5", title:"ٹیک کمپنیوں کی سہ ماہی آمدنی میں ریکارڈ اضافہ", excerpt:"ماہرین کا کہنا ہے کہ کلاؤڈ سروسز اور اے آئی ٹولز کی مانگ بڑھ رہی ہے۔", img:"https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&h=300&fit=crop", tag:"کاروبار", time:"4 گھنٹے پہلے", body:"کئی بڑی ٹیکنالوجی کمپنیوں نے سہ ماہی بنیادوں پر ریکارڈ آمدنی رپورٹ کی۔"},
+        {id:"d6", title:"دیہی اضلاع میں نئے صحت پروگرام کا آغاز", excerpt:"پروگرام کا مقصد ملک بھر میں بنیادی طبی سہولیات تک رسائی بڑھانا ہے۔", img:"https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500&h=300&fit=crop", tag:"صحت", time:"6 گھنٹے پہلے", body:"دیہی اضلاع میں بنیادی طبی سہولیات تک رسائی بڑھانے کے لیے ایک نیا صحت پروگرام شروع کیا گیا ہے۔"}
+      ],
+      sports: [
+        {id:"d7", title:"سٹار کھلاڑی کا مزید تین سال کے لیے معاہدہ", excerpt:"کلب نے کئی ماہ کی قیاس آرائیوں کے بعد معاہدے کی تصدیق کر دی۔", img:"https://images.unsplash.com/photo-1517649763962-0c623066013b?w=500&h=300&fit=crop", tag:"فٹبال", time:"1 گھنٹہ پہلے", body:"کلب نے تصدیق کی ہے کہ اس کے سٹار کھلاڑی نے مزید تین سال کے لیے معاہدے کی توسیع پر دستخط کر دیے ہیں۔"},
+        {id:"d8", title:"کوارٹر فائنل میں کمزور ٹیم کی بڑا اپ سیٹ", excerpt:"آخری لمحات کے گول نے مہمان ٹیم کی شب یادگار بنا دی۔", img:"https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500&h=300&fit=crop", tag:"فٹبال", time:"3 گھنٹے پہلے", body:"ٹورنامنٹ کے اب تک کے سب سے بڑے اپ سیٹس میں سے ایک میں، کمزور ٹیم نے آخری لمحات کے گول کی بدولت فیورٹ ٹیم کو شکست دے دی۔"},
+        {id:"d9", title:"نوجوان ایتھلیٹ کا قومی ریکارڈ", excerpt:"کوچز کا کہنا ہے کہ یہ کارکردگی روشن مستقبل کی نشاندہی کرتی ہے۔", img:"https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500&h=300&fit=crop", tag:"ایتھلیٹکس", time:"5 گھنٹے پہلے", body:"ایک نوجوان ایتھلیٹ نے اس ہفتے اپنے ایونٹ میں قومی ریکارڈ توڑ دیا۔"}
+      ],
+      footer: "© 2026 پاکستان ٹائمز۔ جملہ حقوق محفوظ ہیں۔",
+      backLink: "واپس ہوم پیج", notFound:"خبر نہیں ملی۔", notFoundSub:"ممکن ہے یہ ہٹا دی گئی ہو۔",
+      waTitle: "واٹس ایپ پر فالو کریں", waSub: "بریکنگ نیوز سیدھا اپنے فون پر حاصل کریں۔", waBtn: "فالو کریں",
+      footerLinks: ["ہمارے بارے میں","رابطہ","پرائیویسی پالیسی","شرائط استعمال"],
+      pages: {
+        about: {title:"ہمارے بارے میں", body:"پاکستان ٹائمز ایک آزاد ڈیجیٹل نیوز پلیٹ فارم ہے جو پاکستان اور دنیا بھر کی تازہ ترین اور درست خبریں فراہم کرتا ہے۔\n\nہماری ٹیم سیاست، کاروبار، کھیل اور ثقافت میں منصفانہ رپورٹنگ کے لیے پرعزم ہے۔"},
+        contact: {title:"رابطہ کریں", body:"کوئی خبر، سوال یا رائے ہے؟ ہمیں ضرور بتائیں۔\n\nای میل: contact@example.com\nپتہ: اسلام آباد، پاکستان"},
+        privacy: {title:"پرائیویسی پالیسی", body:"ہم آپ کی رازداری کا احترام کرتے ہیں۔ یہ ویب سائٹ آپ کا ذاتی ڈیٹا کسی تیسرے فریق کو فروخت نہیں کرتی۔\n\nرابطہ فارم کے ذریعے دی گئی معلومات صرف آپ کے سوال کا جواب دینے کے لیے استعمال ہوتی ہیں۔"},
+        terms: {title:"شرائط استعمال", body:"اس ویب سائٹ کو استعمال کر کے آپ اس بات پر متفق ہوتے ہیں کہ اس کا مواد صرف ذاتی، غیر تجارتی مقاصد کے لیے استعمال کریں گے۔\n\nتمام مضامین پاکستان ٹائمز کی ملکیت ہیں جب تک کہ الگ سے نہ بتایا جائے۔"}
+      }
+    }
+  };
+
+  let currentLang = 'en';
+
+  function updateBodyClass(){
+    const t = getTheme();
+    let classes = [];
+    if(currentLang === 'ur') classes.push('ur');
+    if(t.font === 'sans') classes.push('font-sans');
+    if(t.dark === 'on') classes.push('dark');
+    document.body.className = classes.join(' ');
+    // header style option no longer applicable in new BBC-style layout
+  }
+
+  /* ---------- TOAST (replaces alert) ---------- */
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
+
+  /* ---------- ADMIN AUTH (on-page modal, no prompt/confirm) ---------- */
+  let pwModalMode = 'login'; // 'login' | 'change-current' | 'change-new'
+  let pwChangeCurrent = '';
+
+  function getAdminPassword(){
+    return localStorage.getItem('pt_admin_pass') || 'pak123';
+  }
+  function checkAdminAuth(){
+    if(sessionStorage.getItem('pt_admin_ok') === 'yes') return true;
+    openPasswordModal('login');
+    return false;
+  }
+  function openPasswordModal(mode){
+    pwModalMode = mode;
+    document.getElementById('pw-error').style.display = 'none';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-modal-title').textContent =
+      mode === 'login' ? 'Enter admin password' :
+      mode === 'change-current' ? 'Enter current password' : 'Enter new password';
+    document.getElementById('password-modal').style.display = 'flex';
+    document.getElementById('pw-input').focus();
+  }
+  function cancelPasswordModal(){
+    document.getElementById('password-modal').style.display = 'none';
+    if(pwModalMode === 'login') location.hash = '#home';
+  }
+  function submitPassword(){
+    const val = document.getElementById('pw-input').value;
+    if(pwModalMode === 'login'){
+      if(val === getAdminPassword()){
+        sessionStorage.setItem('pt_admin_ok', 'yes');
+        document.getElementById('password-modal').style.display = 'none';
+        router();
+      } else {
+        document.getElementById('pw-error').style.display = 'block';
+      }
+    } else if(pwModalMode === 'change-current'){
+      if(val === getAdminPassword()){
+        pwChangeCurrent = val;
+        openPasswordModal('change-new');
+      } else {
+        document.getElementById('pw-error').style.display = 'block';
+      }
+    } else if(pwModalMode === 'change-new'){
+      if(val.trim()){
+        localStorage.setItem('pt_admin_pass', val.trim());
+        document.getElementById('password-modal').style.display = 'none';
+        showToast('Password updated.');
+      }
+    }
+  }
+  function changeAdminPassword(){
+    openPasswordModal('change-current');
+  }
+
+  /* ---------- THEME / SETTINGS ---------- */
+  function getTheme(){
+    const raw = localStorage.getItem('pt_theme');
+    return raw ? JSON.parse(raw) : {nameEn:'', nameUr:'', logo:'', color:'#0B7A3B', font:'serif', fontsize:'normal', width:'1200', header:'left', dark:'off'};
+  }
+  const fontSizeMap = {small:'14px', normal:'16px', large:'19px'};
+  function applyTheme(){
+    const t = getTheme();
+    document.documentElement.style.setProperty('--red', t.color || '#0B7A3B');
+    document.documentElement.style.setProperty('--main-width', (t.width || '1200') + 'px');
+    document.documentElement.style.setProperty('--font-scale', fontSizeMap[t.fontsize] || '16px');
+    if(t.nameEn){ content.en.logo1 = t.nameEn; content.en.logo2 = ''; }
+    if(t.nameUr){ content.ur.logo1 = t.nameUr; content.ur.logo2 = ''; }
+    document.getElementById('theme-name-en').value = t.nameEn || '';
+    document.getElementById('theme-name-ur').value = t.nameUr || '';
+    document.getElementById('theme-logo').value = t.logo || '';
+    document.getElementById('theme-color').value = t.color || '#0B7A3B';
+    document.getElementById('theme-font').value = t.font || 'serif';
+    document.getElementById('theme-fontsize').value = t.fontsize || 'normal';
+    document.getElementById('theme-width').value = t.width || '1200';
+    document.getElementById('theme-header').value = t.header || 'left';
+    document.getElementById('theme-dark').value = t.dark || 'off';
+    updateBodyClass();
+  }
+  function previewColor(){
+    document.documentElement.style.setProperty('--red', document.getElementById('theme-color').value);
+  }
+  function saveTheme(){
+    const theme = {
+      nameEn: document.getElementById('theme-name-en').value.trim(),
+      nameUr: document.getElementById('theme-name-ur').value.trim(),
+      logo: document.getElementById('theme-logo').value.trim(),
+      color: document.getElementById('theme-color').value,
+      font: document.getElementById('theme-font').value,
+      fontsize: document.getElementById('theme-fontsize').value,
+      width: document.getElementById('theme-width').value,
+      header: document.getElementById('theme-header').value,
+      dark: document.getElementById('theme-dark').value
+    };
+    localStorage.setItem('pt_theme', JSON.stringify(theme));
+    applyTheme();
+    setLang(currentLang);
+    showToast(currentLang==='ur' ? 'محفوظ ہو گیا۔' : 'Saved.');
+  }
+
+  /* ---------- ADMIN STORAGE ---------- */
+  function getAdminNews(){
+    const raw = localStorage.getItem('pt_news_data');
+    return raw ? JSON.parse(raw) : [];
+  }
+  function saveAllNews(list){ localStorage.setItem('pt_news_data', JSON.stringify(list)); }
+
+  function adminNewsAsCards(lang){
+    return getAdminNews().map(item => ({
+      id: item.id,
+      title: lang === 'ur' && item.titleUr ? item.titleUr : item.titleEn,
+      excerpt: lang === 'ur' && item.excerptUr ? item.excerptUr : item.excerptEn,
+      img: item.image, tag: item.category, time: item.time || '',
+      isLive: !!(item.expiresAt && Date.now() < item.expiresAt)
+    })).sort((a,b) => (b.isLive - a.isLive)); // live items float to top
+  }
+
+  /* ---------- HOME VIEW ---------- */
+  function renderCards(list, containerId){
+    const el = document.getElementById(containerId);
+    if(!list.length){ el.innerHTML=''; return; }
+    el.innerHTML = list.map(item => `
+      <div class="card" onclick="location.hash='#article-${item.id}'">
+        <img src="${item.img}" alt="${item.title}">
+        <span class="tag" ${item.isLive ? 'style="background:#d40000;"' : ''}>${item.isLive ? '🔴 LIVE' : item.tag}</span>
+        <h3>${item.title}</h3>
+        <p>${item.excerpt}</p>
+        <div class="meta">${item.time}</div>
+      </div>`).join('');
+  }
+
+  function renderHome(lang){
+    const c = content[lang];
+    document.getElementById('hero-tag').textContent = c.heroTag;
+    document.getElementById('hero-title').textContent = c.heroTitle;
+    document.getElementById('hero-desc').textContent = c.heroDesc;
+    document.getElementById('hero-link').onclick = () => location.hash = '#article-' + c.heroId;
+    document.getElementById('side-stories').innerHTML = c.side.map(s => `
+      <div class="side-story" onclick="location.hash='#article-${s.id}'">
+        <img src="${s.img}" alt="${s.title}">
+        <span class="tag">${s.tag}</span>
+        <h3>${s.title}</h3>
+      </div>`).join('');
+    document.getElementById('latest-title').textContent = c.latestTitle;
+    document.getElementById('sports-title').textContent = c.sportsTitle;
+    renderCards(adminNewsAsCards(lang).concat(c.latest), 'latest-grid');
+    renderCards(c.sports, 'sports-grid');
+  }
+
+  /* ---------- ALL ARTICLES (for search/category/ticker) ---------- */
+  function allArticlesFlat(lang){
+    const c = content[lang];
+    const heroItem = {id:c.heroId, title:c.heroTitle, excerpt:c.heroDesc, img:"https://images.unsplash.com/photo-1495020689067-958852a7765e?w=500&h=300&fit=crop", tag:c.heroTag, time:""};
+    const sideItems = c.side.map(s => ({id:s.id, title:s.title, excerpt:s.body.split('\n')[0], img:s.img, tag:s.tag, time:""}));
+    return [heroItem].concat(sideItems, c.latest, c.sports, adminNewsAsCards(lang));
+  }
+
+  /* ---------- TICKER ---------- */
+  function updateTicker(lang){
+    document.getElementById('ticker-label').textContent = lang === 'ur' ? 'بریکنگ' : 'Breaking';
+    const items = allArticlesFlat(lang).slice(0,6);
+    const html = items.map(i => `<span>${i.title}</span>`).join('');
+    document.getElementById('ticker-track').innerHTML = html + html; // duplicate for seamless loop
+  }
+
+  /* ---------- CATEGORY / SEARCH LIST VIEW ---------- */
+  function renderList(lang, items, title){
+    document.getElementById('list-title').textContent = title;
+    document.getElementById('list-grid').innerHTML = '';
+    renderCards(items, 'list-grid');
+    const emptyMsg = document.getElementById('list-empty');
+    if(!items.length){
+      emptyMsg.style.display = 'block';
+      emptyMsg.textContent = lang === 'ur' ? 'کوئی خبر نہیں ملی۔' : 'No articles found.';
+    } else {
+      emptyMsg.style.display = 'none';
+    }
+  }
+
+  function renderCategory(lang, category){
+    const items = allArticlesFlat(lang).filter(a => a.tag === category);
+    renderList(lang, items, category);
+  }
+
+  function doSearch(){
+    const q = document.getElementById('search-input').value.trim();
+    if(!q) return;
+    location.hash = '#search-' + encodeURIComponent(q);
+  }
+
+  function renderSearch(lang, query){
+    const q = query.toLowerCase();
+    const items = allArticlesFlat(lang).filter(a =>
+      a.title.toLowerCase().includes(q) || (a.excerpt && a.excerpt.toLowerCase().includes(q))
+    );
+    const title = (lang === 'ur' ? 'تلاش کے نتائج: ' : 'Search results: ') + query;
+    renderList(lang, items, title);
+  }
+
+  /* ---------- ARTICLE VIEW ---------- */
+  function findDummy(lang, id){
+    const c = content[lang];
+    if(c.heroId === id) return {title:c.heroTitle, tag:c.heroTag, body:c.heroBody, img:"https://images.unsplash.com/photo-1495020689067-958852a7765e?w=900&h=500&fit=crop", time:""};
+    let f = c.side.find(s => s.id === id);
+    if(f) return {title:f.title, tag:f.tag, body:f.body, img:f.img, time:""};
+    f = c.latest.find(s => s.id === id);
+    if(f) return {title:f.title, tag:f.tag, body:f.body, img:f.img, time:f.time};
+    f = c.sports.find(s => s.id === id);
+    if(f) return {title:f.title, tag:f.tag, body:f.body, img:f.img, time:f.time};
+    return null;
+  }
+  function findAdmin(lang, id){
+    const item = getAdminNews().find(n => n.id === id);
+    if(!item) return null;
+    return {
+      title: lang==='ur' && item.titleUr ? item.titleUr : item.titleEn,
+      tag: item.category,
+      body: (lang==='ur' && item.bodyUr ? item.bodyUr : item.bodyEn) || (lang==='ur' && item.excerptUr ? item.excerptUr : item.excerptEn),
+      img: item.image, time: item.time || ''
+    };
+  }
+
+  function renderArticle(lang, id){
+    const l = content[lang];
+    document.getElementById('back-link').textContent = (lang==='ur' ? '→ ' : '← ') + l.backLink;
+    const article = findAdmin(lang, id) || findDummy(lang, id);
+    const container = document.getElementById('article-container');
+    if(!article){
+      container.innerHTML = `<div class="not-found"><h2>${l.notFound}</h2><p>${l.notFoundSub}</p></div>`;
+      return;
+    }
+    const paragraphs = article.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
+    container.innerHTML = `
+      <span class="tag">${article.tag}</span>
+      <h1 class="a-title">${article.title}</h1>
+      <div class="a-meta">${article.time}</div>
+      <div class="a-cover"><img src="${article.img}" alt="${article.title}"></div>
+      <div class="a-body">${paragraphs}</div>`;
+  }
+
+  /* ---------- ADMIN VIEW ---------- */
+  function saveNews(){
+    const titleEn = document.getElementById('title-en').value.trim();
+    const titleUr = document.getElementById('title-ur').value.trim();
+    const excerptEn = document.getElementById('excerpt-en').value.trim();
+    const excerptUr = document.getElementById('excerpt-ur').value.trim();
+    const bodyEn = document.getElementById('body-en').value.trim();
+    const bodyUr = document.getElementById('body-ur').value.trim();
+    const category = document.getElementById('category').value;
+    const image = document.getElementById('image').value.trim() || 'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=500&h=300&fit=crop';
+    const editId = document.getElementById('edit-id').value;
+
+    if(!titleEn || !excerptEn){ showToast('Please fill at least the English title and excerpt.'); return; }
+
+    let list = getAdminNews();
+    if(editId){
+      list = list.map(item => item.id === editId ? {...item, titleEn, titleUr, excerptEn, excerptUr, bodyEn, bodyUr, category, image} : item);
+    } else {
+      list.unshift({id: Date.now().toString(), titleEn, titleUr, excerptEn, excerptUr, bodyEn, bodyUr, category, image, time: new Date().toLocaleString()});
+    }
+    saveAllNews(list);
+    resetForm();
+    renderAdminTable();
+    const msg = document.getElementById('save-msg');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 2000);
+  }
+
+  function editNews(id){
+    const item = getAdminNews().find(n => n.id === id);
+    if(!item) return;
+    document.getElementById('edit-id').value = item.id;
+    document.getElementById('title-en').value = item.titleEn;
+    document.getElementById('title-ur').value = item.titleUr || '';
+    document.getElementById('excerpt-en').value = item.excerptEn;
+    document.getElementById('excerpt-ur').value = item.excerptUr || '';
+    document.getElementById('body-en').value = item.bodyEn || '';
+    document.getElementById('body-ur').value = item.bodyUr || '';
+    document.getElementById('category').value = item.category;
+    document.getElementById('image').value = item.image;
+    document.getElementById('form-heading').textContent = 'Edit news article';
+    document.getElementById('save-btn').textContent = 'Update news';
+    document.getElementById('cancel-btn').style.display = 'inline-block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function deleteNews(id){
+    saveAllNews(getAdminNews().filter(n => n.id !== id));
+    renderAdminTable();
+    showToast('Deleted.');
+  }
+
+  function resetForm(){
+    document.getElementById('edit-id').value = '';
+    ['title-en','title-ur','excerpt-en','excerpt-ur','body-en','body-ur','image'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('category').value = 'Pakistan';
+    document.getElementById('form-heading').textContent = 'Add news article';
+    document.getElementById('save-btn').textContent = 'Publish news';
+    document.getElementById('cancel-btn').style.display = 'none';
+  }
+
+  function renderAdminTable(){
+    const list = getAdminNews();
+    document.getElementById('count').textContent = list.length;
+    document.getElementById('empty-msg').style.display = list.length ? 'none' : 'block';
+    document.getElementById('news-table').innerHTML = list.map(item => `
+      <tr>
+        <td><img src="${item.image}" alt=""></td>
+        <td>${item.titleEn}</td>
+        <td>${item.category}</td>
+        <td class="actions">
+          <button class="admin-btn secondary" onclick="editNews('${item.id}')">Edit</button>
+          <button class="admin-btn danger" onclick="deleteNews('${item.id}')">Delete</button>
+          <a href="#article-${item.id}" style="font-size:12px; color:var(--red);">View</a>
+        </td>
+      </tr>`).join('');
+  }
+
+  /* ---------- LANGUAGE + SHARED CHROME ---------- */
+  function getHeaderSettings(){
+    const raw = localStorage.getItem('pt_nav_settings');
+    return raw ? JSON.parse(raw) : {topbarEn:'', topbarUr:'', labelsEn:{}, labelsUr:{}};
+  }
+
+  function setLang(lang){
+    currentLang = lang;
+    const c = content[lang];
+    updateBodyClass();
+    document.getElementById('html-root').lang = lang;
+
+    const brandName = getTheme().logo ? '' : (c.logo1 + c.logo2).trim();
+    const initials = brandName ? brandName.split(' ').filter(w=>w.length).slice(0,3).map(w=>w[0]) : ['P','T'];
+    document.getElementById('logo-boxes').innerHTML = getTheme().logo
+      ? `<img src="${getTheme().logo}" alt="logo" style="max-height:44px;">`
+      : initials.map(ch => `<span>${ch}</span>`).join('');
+    document.getElementById('site-word').textContent = lang === 'ur' ? 'اردو' : (c.logo1 + c.logo2);
+    document.getElementById('home-link-text').textContent = c.nav[0];
+
+    const categoryKeys = ["Pakistan","World","Business","Sports","Entertainment","Technology"];
+    const hs = getHeaderSettings();
+    const labelMap = lang === 'ur' ? hs.labelsUr : hs.labelsEn;
+    document.getElementById('nav-list').innerHTML = c.nav.slice(1).map((n,i) => {
+          const key = categoryKeys[i];
+          const label = (labelMap && labelMap[key]) ? labelMap[key] : n;
+          return `<li><a onclick="location.hash='#category-${key}'">${label}</a></li>`;
+        }).join('');
+    document.getElementById('footer-text').innerHTML = `<p>${c.footer}</p>
+      <div class="footer-links">
+        <a onclick="location.hash='#page-about'">${c.footerLinks[0]}</a>
+        <a onclick="location.hash='#page-contact'">${c.footerLinks[1]}</a>
+        <a onclick="location.hash='#page-privacy'">${c.footerLinks[2]}</a>
+        <a onclick="location.hash='#page-terms'">${c.footerLinks[3]}</a>
+      </div>`;
+    document.getElementById('wa-title').textContent = c.waTitle;
+    document.getElementById('wa-sub').textContent = c.waSub;
+    document.getElementById('wa-btn').textContent = c.waBtn;
+    document.getElementById('page-back-text').textContent = c.backLink;
+    document.getElementById('btn-en').classList.toggle('active', lang==='en');
+    document.getElementById('btn-ur').classList.toggle('active', lang==='ur');
+    document.getElementById('search-input').placeholder = lang === 'ur' ? 'تلاش...' : 'Search...';
+    updateTicker(lang);
+    router();
+  }
+
+  function toggleMobileMenu(){
+    const row = document.querySelector('.category-row');
+    row.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  /* ---------- ROUTER ---------- */
+  function router(){
+    const hash = decodeURIComponent(location.hash || '#home');
+    document.getElementById('view-home').style.display = 'none';
+    document.getElementById('view-article').style.display = 'none';
+    document.getElementById('view-admin').style.display = 'none';
+    document.getElementById('view-list').style.display = 'none';
+    document.getElementById('view-page').style.display = 'none';
+
+    if(hash === '#control-panel'){
+      if(!checkAdminAuth()){ return; }
+      document.getElementById('view-admin').style.display = 'block';
+      renderAdminTable();
+    } else if(hash.startsWith('#page-')){
+      document.getElementById('view-page').style.display = 'block';
+      const pageKey = hash.replace('#page-','');
+      const page = content[currentLang].pages[pageKey];
+      const container = document.getElementById('page-content');
+      if(page){
+        const paragraphs = page.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
+        container.innerHTML = `<h1>${page.title}</h1>${paragraphs}`;
+      } else {
+        container.innerHTML = `<h1>404</h1>`;
+      }
+    } else if(hash.startsWith('#article-')){
+      document.getElementById('view-article').style.display = 'block';
+      renderArticle(currentLang, hash.replace('#article-',''));
+    } else if(hash.startsWith('#category-')){
+      document.getElementById('view-list').style.display = 'block';
+      renderCategory(currentLang, hash.replace('#category-',''));
+    } else if(hash.startsWith('#search-')){
+      document.getElementById('view-list').style.display = 'block';
+      renderSearch(currentLang, hash.replace('#search-',''));
+    } else {
+      document.getElementById('view-home').style.display = 'block';
+      renderHome(currentLang);
+    }
+    window.scrollTo(0,0);
+  }
+
+  /* ---------- CUSTOM CODE ---------- */
+  function applyCustomCode(){
+    const raw = localStorage.getItem('pt_custom_code');
+    if(!raw) return;
+    const cc = JSON.parse(raw);
+    if(cc.css){
+      const style = document.createElement('style');
+      style.textContent = cc.css;
+      document.head.appendChild(style);
+    }
+    if(cc.html){
+      document.getElementById('custom-html-slot').innerHTML = cc.html;
+    }
+  }
+
+  window.addEventListener('hashchange', router);
+  applyTheme();
+  applyCustomCode();
+  setLang('en');
+  setInterval(() => { if(!location.hash || location.hash === '#home') renderHome(currentLang); updateTicker(currentLang); }, 60000);
+</script>
+
+</body>
+</html>

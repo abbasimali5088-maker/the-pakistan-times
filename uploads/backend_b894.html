@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backend - The Pakistan Times</title>
+<style>
+  :root{ --red:#0B7A3B; --black:#141414; --gray:#5a5a5a; --border:#dedede; --bg:#f4f4f4; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family: Arial, sans-serif; background:var(--bg); color:var(--black);}
+  header{background:var(--black); color:#fff; padding:16px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--red);}
+  header h1{font-size:20px;}
+  header button{background:transparent; color:#fff; border:1px solid #555; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:13px;}
+  main{max-width:1000px; margin:24px auto; padding:0 20px;}
+  .panel{background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:24px;}
+  .panel h2{font-size:16px; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:8px;}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
+  .field{display:flex; flex-direction:column; gap:4px;}
+  .field.full{grid-column:1/-1;}
+  label{font-size:12px; color:var(--gray); font-weight:bold;}
+  input, select, textarea{padding:9px; border:1px solid var(--border); border-radius:4px; font-family:Arial, sans-serif; font-size:14px;}
+  textarea{resize:vertical; min-height:60px;}
+  .btn{background:var(--red); color:#fff; border:none; padding:10px 20px; border-radius:4px; font-size:14px; font-weight:bold; cursor:pointer;}
+  .btn.secondary{background:#666;}
+  .btn.danger{background:#333;}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th, td{text-align:left; padding:10px; border-bottom:1px solid var(--border);}
+  th{color:var(--gray); font-size:12px; text-transform:uppercase;}
+  td img{width:50px; height:36px; object-fit:cover; border-radius:3px;}
+  .actions button, .actions a{padding:5px 10px; font-size:12px; margin-right:4px;}
+  .empty{color:var(--gray); text-align:center; padding:30px; font-size:14px;}
+  .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#141414; color:#fff; padding:12px 22px; border-radius:6px; z-index:999; display:none;}
+  .lock-screen{position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:500;}
+  .lock-box{background:#fff; padding:30px; border-radius:8px; width:300px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.1);}
+  .lock-box h2{margin-bottom:16px; font-size:18px;}
+  .lock-box input{width:100%; margin-bottom:10px;}
+  .error-text{color:var(--red); font-size:12px; margin-bottom:8px; display:none;}
+  #app{display:none;}
+</style>
+</head>
+<body>
+
+<div class="lock-screen" id="lock-screen">
+  <div class="lock-box">
+    <h2>🔒 Backend Login</h2>
+    <div class="error-text" id="lock-error">Wrong password.</div>
+    <input type="password" id="lock-input" placeholder="Password" onkeydown="if(event.key==='Enter') tryLogin()">
+    <button class="btn" style="width:100%;" onclick="tryLogin()">Enter</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <h1>The Pakistan Times &mdash; Backend</h1>
+    <button onclick="logout()">Log out</button>
+  </header>
+
+  <main>
+    <div class="panel">
+      <h2>Custom Code (advanced)</h2>
+      <p style="font-size:12px; color:var(--gray); margin-bottom:10px;">Yahan aap khud CSS ya HTML likh kar website mein add/change kar sakte hain. Sambhal kar likhein.</p>
+      <div class="field full" style="margin-bottom:14px;">
+        <label>Custom CSS (colors, fonts, spacing waghera)</label>
+        <textarea id="custom-css" style="min-height:120px; font-family:monospace;" placeholder=".card{ border-radius:12px; }"></textarea>
+      </div>
+      <div class="field full" style="margin-bottom:14px;">
+        <label>Custom HTML (footer ke oopar dikhega — jaise ad, widget, extra text)</label>
+        <textarea id="custom-html" style="min-height:100px; font-family:monospace;" placeholder="&lt;p&gt;Kuch bhi HTML&lt;/p&gt;"></textarea>
+      </div>
+      <button class="btn" onclick="saveCustomCode()">Save custom code</button>
+    </div>
+
+    <div class="panel">
+      <h2>Header & Navigation</h2>
+      <div class="row">
+        <div class="field"><label>Top bar text (English)</label><input type="text" id="topbar-en" placeholder="Saturday, 12 September 2026"></div>
+        <div class="field"><label>Top bar text (Urdu)</label><input type="text" id="topbar-ur" placeholder="ہفتہ، 12 ستمبر 2026"></div>
+      </div>
+      <p style="font-size:12px; color:var(--gray); margin:10px 0 6px;">Menu item names (leave empty to use default):</p>
+      <div class="row" id="nav-labels-row"></div>
+      <button class="btn" onclick="saveHeaderSettings()">Save header</button>
+    </div>
+
+    <div class="panel">
+      <h2>Website settings (theme)</h2>
+      <div class="row">
+        <div class="field"><label>Site name (English)</label><input type="text" id="theme-name-en"></div>
+        <div class="field"><label>Site name (Urdu)</label><input type="text" id="theme-name-ur"></div>
+        <div class="field"><label>Logo image URL (optional)</label><input type="text" id="theme-logo" placeholder="https://..."></div>
+        <div class="field"><label>Theme color</label><input type="color" id="theme-color" value="#0B7A3B"></div>
+        <div class="field">
+          <label>Font style</label>
+          <select id="theme-font"><option value="serif">Classic (Serif)</option><option value="sans">Modern (Sans-serif)</option></select>
+        </div>
+        <div class="field">
+          <label>Font size</label>
+          <select id="theme-fontsize"><option value="small">Small</option><option value="normal">Normal</option><option value="large">Large</option></select>
+        </div>
+        <div class="field">
+          <label>Page width</label>
+          <select id="theme-width"><option value="1200">Normal</option><option value="1400">Wide</option></select>
+        </div>
+        <div class="field">
+          <label>Header style</label>
+          <select id="theme-header"><option value="left">Left-aligned logo</option><option value="center">Centered logo</option></select>
+        </div>
+        <div class="field">
+          <label>Dark mode</label>
+          <select id="theme-dark"><option value="off">Off</option><option value="on">On</option></select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="saveTheme()">Save settings</button>
+        <button class="btn secondary" onclick="startChangePassword()">Change backend password</button>
+      </div>
+      <div id="change-pw-box" style="display:none; margin-top:14px;">
+        <div class="row">
+          <div class="field"><label>Current password</label><input type="password" id="pw-current"></div>
+          <div class="field"><label>New password</label><input type="password" id="pw-new"></div>
+        </div>
+        <button class="btn" onclick="submitPasswordChange()">Update password</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 id="form-heading">Add news article</h2>
+      <input type="hidden" id="edit-id">
+      <div class="row">
+        <div class="field"><label>Title (English)</label><input type="text" id="title-en"></div>
+        <div class="field"><label>Title (Urdu)</label><input type="text" id="title-ur"></div>
+        <div class="field full"><label>Excerpt / Summary (English)</label><textarea id="excerpt-en"></textarea></div>
+        <div class="field full"><label>Excerpt / Summary (Urdu)</label><textarea id="excerpt-ur"></textarea></div>
+        <div class="field full"><label>Full article (English)</label><textarea id="body-en" style="min-height:100px;"></textarea></div>
+        <div class="field full"><label>Full article (Urdu)</label><textarea id="body-ur" style="min-height:100px;"></textarea></div>
+        <div class="field">
+          <label>Category</label>
+          <select id="category">
+            <option>Pakistan</option><option>World</option><option>Business</option>
+            <option>Sports</option><option>Entertainment</option><option>Technology</option>
+          </select>
+        </div>
+        <div class="field"><label>Image URL</label><input type="text" id="image" placeholder="https://..."></div>
+        <div class="field">
+          <label>Keep at top as LIVE (hours)</label>
+          <input type="number" id="live-hours" placeholder="e.g. 3 (leave empty = normal news)" min="0">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="saveNews()" id="save-btn">Publish news</button>
+        <button class="btn secondary" onclick="resetForm()" id="cancel-btn" style="display:none;">Cancel edit</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Published news (<span id="count">0</span>)</h2>
+      <table>
+        <thead><tr><th>Image</th><th>Title</th><th>Category</th><th>Actions</th></tr></thead>
+        <tbody id="news-table"></tbody>
+      </table>
+      <div class="empty" id="empty-msg" style="display:none;">No news published yet.</div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ---------- LOGIN ---------- */
+  function getPassword(){ return localStorage.getItem('pt_admin_pass') || 'pak123'; }
+  function tryLogin(){
+    const val = document.getElementById('lock-input').value;
+    if(val === getPassword()){
+      sessionStorage.setItem('pt_admin_ok','yes');
+      document.getElementById('lock-screen').style.display='none';
+      document.getElementById('app').style.display='block';
+      init();
+    } else {
+      document.getElementById('lock-error').style.display='block';
+    }
+  }
+  function logout(){
+    sessionStorage.removeItem('pt_admin_ok');
+    location.reload();
+  }
+  if(sessionStorage.getItem('pt_admin_ok') === 'yes'){
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+  }
+
+  /* ---------- TOAST ---------- */
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.display='block';
+    setTimeout(()=> t.style.display='none', 2200);
+  }
+
+  /* ---------- PASSWORD CHANGE ---------- */
+  function startChangePassword(){
+    document.getElementById('change-pw-box').style.display='block';
+  }
+  function submitPasswordChange(){
+    const cur = document.getElementById('pw-current').value;
+    const next = document.getElementById('pw-new').value;
+    if(cur !== getPassword()){ showToast('Current password is wrong.'); return; }
+    if(!next.trim()){ showToast('Enter a new password.'); return; }
+    localStorage.setItem('pt_admin_pass', next.trim());
+    document.getElementById('change-pw-box').style.display='none';
+    document.getElementById('pw-current').value='';
+    document.getElementById('pw-new').value='';
+    showToast('Password updated.');
+  }
+
+  /* ---------- CUSTOM CODE ---------- */
+  function getCustomCode(){
+    const raw = localStorage.getItem('pt_custom_code');
+    return raw ? JSON.parse(raw) : {css:'', html:''};
+  }
+  function loadCustomCodeForm(){
+    const cc = getCustomCode();
+    document.getElementById('custom-css').value = cc.css || '';
+    document.getElementById('custom-html').value = cc.html || '';
+  }
+  function saveCustomCode(){
+    const cc = {
+      css: document.getElementById('custom-css').value,
+      html: document.getElementById('custom-html').value
+    };
+    localStorage.setItem('pt_custom_code', JSON.stringify(cc));
+    showToast('Custom code saved. Refresh the main website to see changes.');
+  }
+
+  /* ---------- HEADER / NAV SETTINGS ---------- */
+  const navKeys = ["Pakistan","World","Business","Sports","Entertainment","Technology"];
+  function getHeaderSettings(){
+    const raw = localStorage.getItem('pt_nav_settings');
+    return raw ? JSON.parse(raw) : {topbarEn:'', topbarUr:'', labelsEn:{}, labelsUr:{}};
+  }
+  function buildNavLabelFields(){
+    const hs = getHeaderSettings();
+    document.getElementById('nav-labels-row').innerHTML = navKeys.map(key => `
+      <div class="field">
+        <label>${key} (English label)</label>
+        <input type="text" id="navlabel-en-${key}" value="${hs.labelsEn[key] || ''}" placeholder="${key}">
+      </div>
+      <div class="field">
+        <label>${key} (Urdu label)</label>
+        <input type="text" id="navlabel-ur-${key}" value="${hs.labelsUr[key] || ''}" placeholder="اردو نام">
+      </div>
+    `).join('');
+    document.getElementById('topbar-en').value = hs.topbarEn || '';
+    document.getElementById('topbar-ur').value = hs.topbarUr || '';
+  }
+  function saveHeaderSettings(){
+    const labelsEn = {}, labelsUr = {};
+    navKeys.forEach(key => {
+      labelsEn[key] = document.getElementById('navlabel-en-'+key).value.trim();
+      labelsUr[key] = document.getElementById('navlabel-ur-'+key).value.trim();
+    });
+    const settings = {
+      topbarEn: document.getElementById('topbar-en').value.trim(),
+      topbarUr: document.getElementById('topbar-ur').value.trim(),
+      labelsEn, labelsUr
+    };
+    localStorage.setItem('pt_nav_settings', JSON.stringify(settings));
+    showToast('Header saved. Refresh the main website to see changes.');
+  }
+
+  /* ---------- THEME ---------- */
+  function getTheme(){
+    const raw = localStorage.getItem('pt_theme');
+    return raw ? JSON.parse(raw) : {nameEn:'', nameUr:'', logo:'', color:'#0B7A3B', font:'serif', fontsize:'normal', width:'1200', header:'left', dark:'off'};
+  }
+  function loadThemeForm(){
+    const t = getTheme();
+    document.getElementById('theme-name-en').value = t.nameEn || '';
+    document.getElementById('theme-name-ur').value = t.nameUr || '';
+    document.getElementById('theme-logo').value = t.logo || '';
+    document.getElementById('theme-color').value = t.color || '#0B7A3B';
+    document.getElementById('theme-font').value = t.font || 'serif';
+    document.getElementById('theme-fontsize').value = t.fontsize || 'normal';
+    document.getElementById('theme-width').value = t.width || '1200';
+    document.getElementById('theme-header').value = t.header || 'left';
+    document.getElementById('theme-dark').value = t.dark || 'off';
+  }
+  function saveTheme(){
+    const theme = {
+      nameEn: document.getElementById('theme-name-en').value.trim(),
+      nameUr: document.getElementById('theme-name-ur').value.trim(),
+      logo: document.getElementById('theme-logo').value.trim(),
+      color: document.getElementById('theme-color').value,
+      font: document.getElementById('theme-font').value,
+      fontsize: document.getElementById('theme-fontsize').value,
+      width: document.getElementById('theme-width').value,
+      header: document.getElementById('theme-header').value,
+      dark: document.getElementById('theme-dark').value
+    };
+    localStorage.setItem('pt_theme', JSON.stringify(theme));
+    showToast('Settings saved. Refresh the main website to see changes.');
+  }
+
+  /* ---------- NEWS ---------- */
+  function getNews(){
+    const raw = localStorage.getItem('pt_news_data');
+    return raw ? JSON.parse(raw) : [];
+  }
+  function saveAllNews(list){ localStorage.setItem('pt_news_data', JSON.stringify(list)); }
+
+  function saveNews(){
+    const titleEn = document.getElementById('title-en').value.trim();
+    const titleUr = document.getElementById('title-ur').value.trim();
+    const excerptEn = document.getElementById('excerpt-en').value.trim();
+    const excerptUr = document.getElementById('excerpt-ur').value.trim();
+    const bodyEn = document.getElementById('body-en').value.trim();
+    const bodyUr = document.getElementById('body-ur').value.trim();
+    const category = document.getElementById('category').value;
+    const image = document.getElementById('image').value.trim() || 'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=500&h=300&fit=crop';
+    const liveHours = parseFloat(document.getElementById('live-hours').value);
+    const expiresAt = (liveHours && liveHours > 0) ? (Date.now() + liveHours * 3600000) : null;
+    const editId = document.getElementById('edit-id').value;
+
+    if(!titleEn || !excerptEn){ showToast('Fill at least English title and excerpt.'); return; }
+
+    let list = getNews();
+    if(editId){
+      list = list.map(item => item.id === editId ? {...item, titleEn, titleUr, excerptEn, excerptUr, bodyEn, bodyUr, category, image, expiresAt} : item);
+    } else {
+      list.unshift({id: Date.now().toString(), titleEn, titleUr, excerptEn, excerptUr, bodyEn, bodyUr, category, image, expiresAt, time: new Date().toLocaleString()});
+    }
+    saveAllNews(list);
+    resetForm();
+    renderTable();
+    showToast('Published.');
+  }
+
+  function editNews(id){
+    const item = getNews().find(n => n.id === id);
+    if(!item) return;
+    document.getElementById('edit-id').value = item.id;
+    document.getElementById('title-en').value = item.titleEn;
+    document.getElementById('title-ur').value = item.titleUr || '';
+    document.getElementById('excerpt-en').value = item.excerptEn;
+    document.getElementById('excerpt-ur').value = item.excerptUr || '';
+    document.getElementById('body-en').value = item.bodyEn || '';
+    document.getElementById('body-ur').value = item.bodyUr || '';
+    document.getElementById('category').value = item.category;
+    document.getElementById('image').value = item.image;
+    document.getElementById('live-hours').value = '';
+    document.getElementById('form-heading').textContent = 'Edit news article';
+    document.getElementById('save-btn').textContent = 'Update news';
+    document.getElementById('cancel-btn').style.display = 'inline-block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function deleteNews(id){
+    saveAllNews(getNews().filter(n => n.id !== id));
+    renderTable();
+    showToast('Deleted.');
+  }
+
+  function resetForm(){
+    document.getElementById('edit-id').value = '';
+    ['title-en','title-ur','excerpt-en','excerpt-ur','body-en','body-ur','image'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('category').value = 'Pakistan';
+    document.getElementById('live-hours').value = '';
+    document.getElementById('form-heading').textContent = 'Add news article';
+    document.getElementById('save-btn').textContent = 'Publish news';
+    document.getElementById('cancel-btn').style.display = 'none';
+  }
+
+  function renderTable(){
+    const list = getNews();
+    document.getElementById('count').textContent = list.length;
+    document.getElementById('empty-msg').style.display = list.length ? 'none' : 'block';
+    document.getElementById('news-table').innerHTML = list.map(item => {
+      const isLive = item.expiresAt && Date.now() < item.expiresAt;
+      const liveTag = isLive ? `<span style="color:var(--red); font-weight:bold;">🔴 LIVE (${Math.ceil((item.expiresAt-Date.now())/3600000)}h left)</span>` : '';
+      return `
+      <tr>
+        <td><img src="${item.image}" alt=""></td>
+        <td>${item.titleEn}<br>${liveTag}</td>
+        <td>${item.category}</td>
+        <td class="actions">
+          <button class="btn secondary" onclick="editNews('${item.id}')">Edit</button>
+          <button class="btn danger" onclick="deleteNews('${item.id}')">Delete</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function init(){
+    loadThemeForm();
+    buildNavLabelFields();
+    loadCustomCodeForm();
+    renderTable();
+  }
+  if(sessionStorage.getItem('pt_admin_ok') === 'yes') init();
+</script>
+
+</body>
+</html>
