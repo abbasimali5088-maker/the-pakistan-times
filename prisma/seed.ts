@@ -240,12 +240,12 @@ async function main() {
   const menuItems = [
     { label: "Home", labelUr: "ہوم", url: "/", sortOrder: 0 },
     { label: "Latest", labelUr: "تازہ ترین", url: "/latest", sortOrder: 1 },
-    { label: "Pakistan", labelUr: "پاکستان", url: "/pakistan", sortOrder: 2 },
-    { label: "World", labelUr: "دنیا", url: "/world", sortOrder: 3 },
-    { label: "Politics", labelUr: "سیاست", url: "/politics", sortOrder: 4 },
-    { label: "Sports", labelUr: "سپورٹس", url: "/sports", sortOrder: 5 },
-    { label: "Business", labelUr: "بزنس", url: "/business", sortOrder: 6 },
-    { label: "Technology", labelUr: "ٹیکنالوجی", url: "/technology", sortOrder: 7 },
+    { label: "Pakistan", labelUr: "پاکستان", url: "/category/pakistan", sortOrder: 2 },
+    { label: "World", labelUr: "دنیا", url: "/category/world", sortOrder: 3 },
+    { label: "Politics", labelUr: "سیاست", url: "/category/politics", sortOrder: 4 },
+    { label: "Sports", labelUr: "سپورٹس", url: "/category/sports", sortOrder: 5 },
+    { label: "Business", labelUr: "بزنس", url: "/category/business", sortOrder: 6 },
+    { label: "Technology", labelUr: "ٹیکنالوجی", url: "/category/technology", sortOrder: 7 },
     { label: "Videos", labelUr: "ویڈیوز", url: "/videos", sortOrder: 8 },
     { label: "Galleries", labelUr: "تصاویر", url: "/galleries", sortOrder: 9 },
     { label: "Live", labelUr: "لائیو", url: "/live", sortOrder: 10 },
@@ -336,6 +336,19 @@ async function main() {
   for (const a of sampleArticles) {
     const slug = makeSlug(a.titleEn);
     let article = await prisma.article.findFirst({ where: { slug, siteId: site.id } });
+    if (article) {
+      article = await prisma.article.update({
+        where: { id: article.id },
+        data: {
+          title: a.titleEn,
+          titleUr: a.title,
+          excerpt: a.titleEn,
+          excerptUr: a.excerpt,
+          body: `<p>${a.titleEn}</p><p>${a.excerpt}</p><p>This sample article is part of The Pakistan Times CMS seed data.</p>`,
+          bodyUr: `<p>${a.excerpt}</p><p>مکمل رپورٹ جلد آ رہی ہے۔</p>`,
+        },
+      });
+    }
     if (!article) {
       const media = await prisma.media.create({
         data: {
@@ -355,12 +368,12 @@ async function main() {
       article = await prisma.article.create({
         data: {
           site: { connect: { id: site.id } },
-          title: a.title,
+          title: a.titleEn,
           titleUr: a.title,
           slug,
-          excerpt: a.excerpt,
+          excerpt: a.titleEn,
           excerptUr: a.excerpt,
-          body: `<p>${a.excerpt}</p><p>${a.titleEn}</p><p>یہ نمونہ مضمون دی پاکستان ٹائمز اردو کے CMS سیڈ ڈیٹا کا حصہ ہے۔</p>`,
+          body: `<p>${a.titleEn}</p><p>${a.excerpt}</p><p>This sample article is part of The Pakistan Times CMS seed data.</p>`,
           bodyUr: `<p>${a.excerpt}</p><p>مکمل رپورٹ جلد آ رہی ہے۔</p>`,
           language: "ur",
           status: "published",

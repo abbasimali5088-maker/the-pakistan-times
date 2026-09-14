@@ -1,0 +1,25 @@
+{
+  "name": "دی پاکستان ٹائمز اردو",
+  "short_name": "Pakistan Times",
+  "description": "پاکستان اور دنیا کی تازہ ترین خبریں — The Pakistan Times",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3EFE6",
+  "theme_color": "#0B7A3B",
+  "lang": "ur",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
