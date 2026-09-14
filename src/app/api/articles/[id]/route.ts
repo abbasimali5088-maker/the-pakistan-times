@@ -173,7 +173,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     let publishedAt = existing.publishedAt;
     let archivedAt = existing.archivedAt;
     let unpublishedAt = existing.unpublishedAt;
-    let publishAt = body.publishAt ? new Date(body.publishAt) : existing.publishAt;
+    const publishAt = body.publishAt ? new Date(body.publishAt) : existing.publishAt;
 
     switch (body.action) {
       case "publish":

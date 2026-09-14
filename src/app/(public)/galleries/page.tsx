@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/public/EmptyState";
 import { GalleryCard } from "@/components/public/GalleryCard";
 import { Pagination } from "@/components/public/Pagination";
-import { getRequestLang } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 import { getGalleries } from "@/lib/public-api";
 
 export const dynamic = "force-dynamic";

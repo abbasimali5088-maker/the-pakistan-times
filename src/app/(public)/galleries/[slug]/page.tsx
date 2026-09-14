@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/public/EmptyState";
-import { getRequestLang } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 import { getGallery } from "@/lib/public-api";
 
 export const dynamic = "force-dynamic";

@@ -44,7 +44,8 @@ async function publicFetch<T>(
   init?: RequestInit & { fallback?: T },
 ): Promise<T> {
   const fallback = init?.fallback as T;
-  const { fallback: _f, ...rest } = init || {};
+  const { fallback: _ignored, ...rest } = init || {};
+  void _ignored;
   const url = path.startsWith("http")
     ? path
     : `${apiBase()}${path.startsWith("/") ? path : `/${path}`}`;

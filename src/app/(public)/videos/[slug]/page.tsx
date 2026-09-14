@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getRequestLang } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 import { getVideo } from "@/lib/public-api";
 
 export const dynamic = "force-dynamic";

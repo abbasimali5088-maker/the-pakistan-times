@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/public/EmptyState";
-import { getRequestLang } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 import { getLiveStory } from "@/lib/public-api";
 import { formatDate } from "@/lib/utils";
 

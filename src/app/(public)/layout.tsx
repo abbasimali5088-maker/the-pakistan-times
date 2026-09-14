@@ -3,7 +3,7 @@ import { BreakingNewsBar } from "@/components/public/BreakingNewsBar";
 import { Footer } from "@/components/public/Footer";
 import { Header } from "@/components/public/Header";
 import { getBreaking, getCategories, getMenus } from "@/lib/public-api";
-import { getRequestLang } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 
 export const dynamic = "force-dynamic";
 

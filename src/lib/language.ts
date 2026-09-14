@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { BRAND } from "./constants";
 
 export type Lang = "ur" | "en";
@@ -11,18 +10,6 @@ export function isLang(value: unknown): value is Lang {
 
 export function normalizeLang(value?: string | null): Lang {
   return value === "en" ? "en" : "ur";
-}
-
-export async function getRequestLang(searchParams?: {
-  lang?: string | string[];
-}): Promise<Lang> {
-  const fromQuery = Array.isArray(searchParams?.lang)
-    ? searchParams?.lang[0]
-    : searchParams?.lang;
-  if (isLang(fromQuery)) return fromQuery;
-
-  const jar = await cookies();
-  return normalizeLang(jar.get(LANG_COOKIE)?.value);
 }
 
 export function brandName(lang: Lang) {

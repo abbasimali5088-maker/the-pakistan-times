@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { EmptyState } from "@/components/public/EmptyState";
-import { getRequestLang, pickText } from "@/lib/language";
+import { pickText } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 import { getArticles, getBreaking } from "@/lib/public-api";
 
 export const dynamic = "force-dynamic";

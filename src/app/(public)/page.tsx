@@ -5,7 +5,8 @@ import { FeaturedStory } from "@/components/public/FeaturedStory";
 import { GalleryCard } from "@/components/public/GalleryCard";
 import { MostRead } from "@/components/public/MostRead";
 import { VideoCard } from "@/components/public/VideoCard";
-import { brandName, getRequestLang, pickText } from "@/lib/language";
+import { brandName, pickText } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 import {
   getArticles,
   getCategories,

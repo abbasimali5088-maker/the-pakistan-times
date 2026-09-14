@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/public/EmptyState";
 import { Pagination } from "@/components/public/Pagination";
 import { VideoCard } from "@/components/public/VideoCard";
-import { getRequestLang } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 import { getVideos } from "@/lib/public-api";
 
 export const dynamic = "force-dynamic";

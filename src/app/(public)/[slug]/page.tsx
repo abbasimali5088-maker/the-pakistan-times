@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/public/ArticleCard";
 import { Comments } from "@/components/public/Comments";
 import { ShareButtons } from "@/components/public/ShareButtons";
-import { brandName, getRequestLang, localizeArticle } from "@/lib/language";
+import { brandName, localizeArticle } from "@/lib/language";
+import { getRequestLang } from "@/lib/language-server";
 import { absoluteUrl, getArticle, getArticles } from "@/lib/public-api";
 import { formatDate } from "@/lib/utils";
 
