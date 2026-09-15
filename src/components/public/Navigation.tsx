@@ -59,7 +59,7 @@ export function Navigation({
         ];
 
   return (
-    <nav className="bg-[var(--ink)]" aria-label={lang === "ur" ? "مرکزی مینو" : "Main"}>
+    <nav className="bg-[var(--masthead-red)]" aria-label={lang === "ur" ? "مرکزی مینو" : "Main"}>
       <div className="mx-auto flex max-w-[var(--maxw)] items-center gap-2 overflow-x-auto px-3">
         <ul className="flex min-w-0 flex-1 items-center">
           {links.map((link) => {

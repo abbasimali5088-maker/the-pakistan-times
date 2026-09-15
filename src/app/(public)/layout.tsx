@@ -2,9 +2,16 @@ import { headers } from "next/headers";
 import { BreakingNewsBar } from "@/components/public/BreakingNewsBar";
 import { Footer } from "@/components/public/Footer";
 import { Header } from "@/components/public/Header";
+import { RatesBar } from "@/components/public/RatesBar";
 import { getSettingMap } from "@/lib/content";
 import { getBreaking, getCategories, getMenus } from "@/lib/public-api";
 import { getRequestLang } from "@/lib/language-server";
+import {
+  defaultRatesMap,
+  normalizeRatesMap,
+  ratesToPublicItems,
+  RATES_GROUP,
+} from "@/lib/market-rates";
 import { SOCIAL_LINK_KEYS, normalizeSettingsMap } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +39,12 @@ export default async function PublicLayout({
   ]);
 
   const settings = normalizeSettingsMap(rawSettings);
+  const rates = normalizeRatesMap({
+    ...defaultRatesMap(),
+    ...(rawSettings[RATES_GROUP] || {}),
+  });
+  const rateItems = ratesToPublicItems(rates);
+
   const social: Record<string, string> = {};
   for (const key of SOCIAL_LINK_KEYS) {
     const val = settings.social?.[key]?.trim();
@@ -58,6 +71,12 @@ export default async function PublicLayout({
         categories={topCategories}
         taglineUr={settings.general?.taglineUr}
         taglineEn={settings.general?.taglineEn}
+      />
+      <RatesBar
+        lang={lang}
+        items={rateItems}
+        updatedLabel={rates.updatedLabel}
+        updatedLabelUr={rates.updatedLabelUr}
       />
       <BreakingNewsBar lang={lang} items={breaking} />
       <main className="site-main">{children}</main>

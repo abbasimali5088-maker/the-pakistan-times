@@ -36,8 +36,12 @@ Open:
 
 - Public: http://127.0.0.1:4355
 - Admin: http://127.0.0.1:4355/admin/login
+- Rates admin: http://127.0.0.1:4355/admin/rates
+- Public rates API: http://127.0.0.1:4355/api/rates?public=1
 - Health: http://127.0.0.1:4355/api/health
 - API docs: http://127.0.0.1:4355/api/docs
+
+Gold, petrol, diesel and forex rates are edited in **Admin → Rates** (no external API key required).
 
 ### Scripts
 

@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { ACTIONS, MODULES, ROLE_DEFS, permissionCode } from "../src/lib/permissions";
 import { seedSettingRows } from "../src/lib/site-settings";
+import { defaultRatesMap, RATES_GROUP } from "../src/lib/market-rates";
 import { makeSlug } from "../src/lib/slug";
 
 const prisma = new PrismaClient();
@@ -201,10 +202,19 @@ async function main() {
       where: { siteId_group_key: { siteId: site.id, group, key } },
       // Don't wipe editor-entered social/contact URLs on re-seed
       update:
-        group === "social" || group === "general" || group === "footer"
+        group === "social" || group === "general" || group === "footer" || group === RATES_GROUP
           ? {}
           : { value },
       create: { siteId: site.id, group, key, value },
+    });
+  }
+
+  const rateDefaults = defaultRatesMap();
+  for (const [key, value] of Object.entries(rateDefaults)) {
+    await prisma.setting.upsert({
+      where: { siteId_group_key: { siteId: site.id, group: RATES_GROUP, key } },
+      update: {},
+      create: { siteId: site.id, group: RATES_GROUP, key, value },
     });
   }
 

@@ -14,6 +14,8 @@
   --paper-deep: #ebe4d6;
   --surface: rgba(255, 252, 246, 0.92);
   --danger: #9b1c1c;
+  --masthead-red: #c8102e;
+  --masthead-red-deep: #9f0c24;
   --shadow-soft: 0 18px 40px rgba(20, 20, 20, 0.08);
   --font-urdu: var(--font-noto-nastaliq), "Noto Nastaliq Urdu", serif;
   --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
@@ -215,7 +217,7 @@ html[dir="rtl"] .ticker-track {
   right: 0.85rem;
   bottom: 0.35rem;
   height: 2px;
-  background: var(--accent);
+  background: #ffffff;
   transform: scaleX(0);
   transform-origin: center;
   transition: transform 0.25s ease;

@@ -28,7 +28,7 @@ export function Header({
 
   return (
     <header className="site-header">
-      <div className="flex items-center justify-between gap-3 bg-[var(--ink)] px-4 py-2 text-xs text-white/80 ui-sans">
+      <div className="flex items-center justify-between gap-3 bg-[var(--masthead-red)] px-4 py-2 text-xs text-white/90 ui-sans">
         <span>{lang === "ur" ? "پاکستان اور دنیا سے تازہ خبریں" : "Pakistan & world news desk"}</span>
         <LanguageSwitcher lang={lang} />
       </div>

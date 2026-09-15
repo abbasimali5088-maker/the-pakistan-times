@@ -27,6 +27,7 @@ export async function GET() {
       { path: "/api/audio", methods: ["GET", "POST"], auth: "admin" },
       { path: "/api/galleries", methods: ["GET", "POST"], auth: "optional public=1" },
       { path: "/api/settings", methods: ["GET", "PUT"], auth: "admin" },
+      { path: "/api/rates", methods: ["GET", "PUT"], auth: "optional public=1", notes: "Gold, petrol, diesel, forex rates — no external API key" },
       { path: "/api/seo", methods: ["GET", "POST"], auth: "admin" },
       { path: "/api/sitemap", methods: ["GET", "POST"], auth: "public GET" },
       { path: "/api/robots", methods: ["GET", "PUT"], auth: "public GET" },

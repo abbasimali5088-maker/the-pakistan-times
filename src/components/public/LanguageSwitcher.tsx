@@ -26,8 +26,8 @@ export function LanguageSwitcher({ lang }: { lang: Lang }) {
         className={cn(
           "border px-2.5 py-1 text-xs font-bold transition",
           lang === "ur"
-            ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-            : "border-white/40 bg-transparent text-white hover:border-white",
+            ? "border-white bg-white text-[var(--masthead-red)]"
+            : "border-white/45 bg-transparent text-white hover:border-white hover:bg-white/10",
         )}
         aria-pressed={lang === "ur"}
         disabled={pending}
@@ -40,8 +40,8 @@ export function LanguageSwitcher({ lang }: { lang: Lang }) {
         className={cn(
           "border px-2.5 py-1 text-xs font-bold transition",
           lang === "en"
-            ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-            : "border-white/40 bg-transparent text-white hover:border-white",
+            ? "border-white bg-white text-[var(--masthead-red)]"
+            : "border-white/45 bg-transparent text-white hover:border-white hover:bg-white/10",
         )}
         aria-pressed={lang === "en"}
         disabled={pending}
