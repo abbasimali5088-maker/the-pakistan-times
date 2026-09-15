@@ -20,6 +20,7 @@ type ApiEnvelope<T> = {
   error?: string;
 };
 
+/** Public/canonical site URL (SEO, OG, absolute links). */
 function siteBaseUrl() {
   const configured =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -30,10 +31,22 @@ function siteBaseUrl() {
   return `http://127.0.0.1:${port}`;
 }
 
+/**
+ * Base URL for server-side self-fetches during SSR.
+ * Prefer this deployment's VERCEL_URL so a mis-set NEXT_PUBLIC_SITE_URL
+ * (e.g. another Vercel project without DB) cannot empty the homepage.
+ */
+function internalBaseUrl() {
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
+  }
+  return siteBaseUrl();
+}
+
 function apiBase() {
   const base = process.env.NEXT_PUBLIC_API_BASE || "/api";
   if (base.startsWith("http")) return base.replace(/\/$/, "");
-  return `${siteBaseUrl()}${base.startsWith("/") ? base : `/${base}`}`;
+  return `${internalBaseUrl()}${base.startsWith("/") ? base : `/${base}`}`;
 }
 
 export function absoluteUrl(path = "/") {
