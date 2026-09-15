@@ -307,8 +307,13 @@ export async function fetchLiveRates(existing?: RatesMap): Promise<LiveRatesResu
     .filter((p) => !p.ok)
     .map((p) => `${p.source}: ${p.error || "failed"}`);
 
+  const merged: RatesMap = { ...base };
+  for (const [key, value] of Object.entries(updated)) {
+    if (value != null && value !== "") merged[key] = value;
+  }
+
   return {
-    rates: normalizeRatesMap({ ...base, ...updated }),
+    rates: normalizeRatesMap(merged),
     updated,
     sources,
     errors,
