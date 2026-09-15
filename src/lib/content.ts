@@ -9,15 +9,19 @@ export const articlePublicInclude = {
 } as const;
 
 export async function getSettingMap(siteId?: string | null) {
-  const rows = await prisma.setting.findMany({
-    where: siteId ? { siteId } : undefined,
-  });
-  const map: Record<string, Record<string, string>> = {};
-  for (const row of rows) {
-    map[row.group] ||= {};
-    map[row.group][row.key] = row.value;
+  try {
+    const rows = await prisma.setting.findMany({
+      where: siteId ? { siteId } : undefined,
+    });
+    const map: Record<string, Record<string, string>> = {};
+    for (const row of rows) {
+      map[row.group] ||= {};
+      map[row.group][row.key] = row.value;
+    }
+    return map;
+  } catch {
+    return {};
   }
-  return map;
 }
 
 export async function getDefaultSite() {

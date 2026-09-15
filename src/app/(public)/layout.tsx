@@ -32,16 +32,28 @@ export default async function PublicLayout({
   }
   const lang = await getRequestLang({ lang: searchLang });
 
-  const [menu, categories, breaking, rawSettings] = await Promise.all([
-    getMenus("main"),
-    getCategories(),
-    getBreaking(),
-    getSettingMap(),
-  ]);
+  let menu: Awaited<ReturnType<typeof getMenus>> = null;
+  let categories: Awaited<ReturnType<typeof getCategories>> = [];
+  let breaking: Awaited<ReturnType<typeof getBreaking>> = [];
+  let rawSettings: Awaited<ReturnType<typeof getSettingMap>> = {};
+
+  try {
+    [menu, categories, breaking, rawSettings] = await Promise.all([
+      getMenus("main"),
+      getCategories(),
+      getBreaking(),
+      getSettingMap(),
+    ]);
+  } catch {
+    // Site must render even when DATABASE_URL is missing/unreachable on Vercel
+    menu = null;
+    categories = [];
+    breaking = [];
+    rawSettings = {};
+  }
 
   const settings = normalizeSettingsMap(rawSettings);
 
-  // OGRA petrol changes daily — refresh if stored rates are stale
   let rateMap = normalizeRatesMap({
     ...defaultRatesMap(),
     ...(rawSettings[RATES_GROUP] || {}),
@@ -51,7 +63,7 @@ export default async function PublicLayout({
     rateMap = fresh.rates;
     await ensureRatesRefreshJob();
   } catch {
-    /* keep stored rates if live sync fails */
+    /* keep defaults if live sync / DB fails */
   }
   const rateItems = ratesToPublicItems(rateMap);
 
@@ -61,7 +73,7 @@ export default async function PublicLayout({
     if (val) social[key] = val;
   }
 
-  const topCategories = categories.filter((c) => {
+  const topCategories = (categories || []).filter((c) => {
     const parentId = (c as { parentId?: string | null }).parentId;
     return !parentId;
   });
@@ -88,7 +100,7 @@ export default async function PublicLayout({
         updatedLabel={rateMap.updatedLabel}
         updatedLabelUr={rateMap.updatedLabelUr}
       />
-      <BreakingNewsBar lang={lang} items={breaking} />
+      <BreakingNewsBar lang={lang} items={breaking || []} />
       <main className="site-main">{children}</main>
       <Footer
         lang={lang}
