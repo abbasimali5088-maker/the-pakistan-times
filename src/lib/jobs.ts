@@ -1,4 +1,9 @@
 import { prisma } from "./db";
+import {
+  ensureRatesRefreshJob,
+  nextRatesRefreshAt,
+  syncLiveRatesToDb,
+} from "./fetch-live-rates";
 
 export async function processDueJobs(limit = 20) {
   const due = await prisma.job.findMany({
@@ -24,7 +29,14 @@ export async function processDueJobs(limit = 20) {
             },
           });
         }
+      } else if (job.type === "refresh_rates") {
+        await syncLiveRatesToDb();
+        // Recurring: schedule next run
+        await ensureRatesRefreshJob(nextRatesRefreshAt());
+      } else if (job.type === "regenerate_sitemap") {
+        // Placeholder — sitemap is generated on demand via /api/sitemap
       }
+
       await prisma.job.update({
         where: { id: job.id },
         data: { status: "completed", attempts: { increment: 1 } },
@@ -40,6 +52,14 @@ export async function processDueJobs(limit = 20) {
           lastError: err instanceof Error ? err.message : "Job failed",
         },
       });
+      // Even on failure, keep trying rates refresh later
+      if (job.type === "refresh_rates") {
+        try {
+          await ensureRatesRefreshJob(nextRatesRefreshAt());
+        } catch {
+          /* ignore */
+        }
+      }
     }
   }
 

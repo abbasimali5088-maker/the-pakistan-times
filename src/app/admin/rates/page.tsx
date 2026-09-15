@@ -18,6 +18,8 @@ export default function RatesPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSources, setLastSources] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,6 +43,31 @@ export default function RatesPage() {
     setValues((prev) => ({ ...prev, [key]: value }));
   }
 
+  async function fetchLive() {
+    setSyncing(true);
+    setNotice(null);
+    setError(null);
+    try {
+      const data = await adminFetch<{
+        rates?: RatesMap;
+        sources?: string[];
+        errors?: string[];
+        syncedAt?: string;
+      }>("/api/rates?action=sync", { method: "POST" });
+      setValues(normalizeRatesMap({ ...defaultRatesMap(), ...(data.rates || {}) }));
+      setLastSources(data.sources || []);
+      const errPart =
+        data.errors && data.errors.length > 0 ? ` (partial: ${data.errors.join("; ")})` : "";
+      setNotice(
+        `Live rates synced${data.syncedAt ? ` at ${data.syncedAt}` : ""}${errPart}. Server har 6 ghante auto-update karega.`,
+      );
+    } catch (err) {
+      setError(err instanceof AdminApiError ? err.message : "Live sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -51,7 +78,7 @@ export default function RatesPage() {
         method: "PUT",
         body: JSON.stringify({ rates: values }),
       });
-      setNotice("Rates saved — gold, petrol and forex will show on the public website.");
+      setNotice("Manual rates saved — website pe update ho jayenge.");
       await load();
     } catch (err) {
       setError(err instanceof AdminApiError ? err.message : "Save failed");
@@ -66,8 +93,36 @@ export default function RatesPage() {
     <div>
       <AdminPageHeader
         title="Market rates"
-        description="سونا، پیٹرول، ڈیزل اور کرنسی ریٹس — بغیر کسی بیرونی API key کے یہاں سے سیٹ کریں۔ Public API: GET /api/rates?public=1"
+        description="Live server: free APIs se petrol (oilprices.pk), gold/silver (gold-api.com), forex (open.er-api.com) — har 6 ghante auto. Manual override bhi possible."
+        actions={
+          <button
+            type="button"
+            disabled={syncing || busy}
+            onClick={() => void fetchLive()}
+            className="rounded-md bg-[#c8102e] px-4 py-2 text-sm font-semibold text-white hover:bg-[#9f0c24] disabled:opacity-60"
+          >
+            {syncing ? "Fetching live…" : "Fetch live rates now"}
+          </button>
+        }
       />
+
+      <AdminPanel
+        title="Auto update server"
+        description="Vercel Cron → /api/rates/refresh (every 6h) + background job refresh_rates. Paid API key ki zarurat nahi."
+        className="mb-6"
+      >
+        <ul className="list-inside list-disc space-y-1 text-sm text-slate-600">
+          <li>Fuel: oilprices.pk (OGRA-notified petrol / diesel)</li>
+          <li>Gold &amp; silver: gold-api.com → PKR / tola</li>
+          <li>Currency: open.er-api.com (USD, EUR, GBP, SAR, AED)</li>
+        </ul>
+        {lastSources.length > 0 ? (
+          <p className="mt-3 text-xs text-slate-500">Last sources: {lastSources.join(" · ")}</p>
+        ) : null}
+        {values.sourceNote ? (
+          <p className="mt-2 text-xs text-slate-500">{values.sourceNote}</p>
+        ) : null}
+      </AdminPanel>
 
       {error ? (
         <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -158,16 +213,16 @@ export default function RatesPage() {
           </div>
         </AdminPanel>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || syncing}
             className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
           >
-            {busy ? "Saving…" : "Save rates"}
+            {busy ? "Saving…" : "Save manual override"}
           </button>
           <p className="text-xs text-slate-500">
-            API: <code className="rounded bg-slate-100 px-1">GET /api/rates?public=1</code>
+            Cron: <code className="rounded bg-slate-100 px-1">GET /api/rates/refresh</code>
           </p>
         </div>
       </form>

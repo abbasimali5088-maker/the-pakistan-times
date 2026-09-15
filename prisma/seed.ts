@@ -218,6 +218,21 @@ async function main() {
     });
   }
 
+  // Schedule recurring live rates refresh (every 6h via processDueJobs / Vercel Cron)
+  const pendingRatesJob = await prisma.job.findFirst({
+    where: { type: "refresh_rates", status: "pending" },
+  });
+  if (!pendingRatesJob) {
+    await prisma.job.create({
+      data: {
+        type: "refresh_rates",
+        payloadJson: JSON.stringify({ reason: "seed" }),
+        runAt: new Date(),
+        status: "pending",
+      },
+    });
+  }
+
   const menu = await prisma.menu.upsert({
     where: { id: "main-menu-seed" },
     update: { name: "Main", location: "main", status: "active", siteId: site.id },

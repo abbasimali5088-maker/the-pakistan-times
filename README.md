@@ -41,7 +41,13 @@ Open:
 - Health: http://127.0.0.1:4355/api/health
 - API docs: http://127.0.0.1:4355/api/docs
 
-Gold, petrol, diesel and forex rates are edited in **Admin → Rates** (no external API key required).
+Gold, petrol, diesel and forex rates are edited in **Admin → Rates**.
+
+**Live auto-update (no paid API key):**
+- Free sources: oilprices.pk (fuel), gold-api.com (gold/silver), open.er-api.com (forex)
+- Admin button: **Fetch live rates now** → `POST /api/rates?action=sync`
+- Vercel Cron every 6 hours → `/api/rates/refresh` (set `CRON_SECRET` in env)
+- Background job `refresh_rates` via `npm run jobs:run`
 
 ### Scripts
 

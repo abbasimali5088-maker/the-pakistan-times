@@ -2,34 +2,28 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { handleApi } from "@/lib/api";
 import { requirePermission } from "@/lib/auth";
-import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
-import { getDefaultSite } from "@/lib/content";
 import {
-  RATES_GROUP,
   RATE_FIELDS,
   RATE_META_KEYS,
   defaultRatesMap,
-  normalizeRatesMap,
   ratesToPublicItems,
-  type RatesMap,
 } from "@/lib/market-rates";
+import {
+  ensureRatesRefreshJob,
+  loadStoredRatesMap,
+  nextRatesRefreshAt,
+  persistRatesMap,
+  syncLiveRatesToDb,
+} from "@/lib/fetch-live-rates";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const ALLOWED_KEYS = new Set([
   ...RATE_FIELDS.map((f) => f.key),
   ...RATE_META_KEYS,
 ]);
-
-async function loadRatesMap(): Promise<RatesMap> {
-  const rows = await prisma.setting.findMany({
-    where: { group: RATES_GROUP },
-  });
-  const raw: RatesMap = {};
-  for (const row of rows) raw[row.key] = row.value;
-  return normalizeRatesMap(raw);
-}
 
 export async function GET(req: NextRequest) {
   return handleApi(async () => {
@@ -37,7 +31,9 @@ export async function GET(req: NextRequest) {
     const publicOnly = url.searchParams.get("public") === "1";
     if (!publicOnly) await requirePermission("settings", "read");
 
-    const rates = await loadRatesMap();
+    await ensureRatesRefreshJob();
+
+    const rates = await loadStoredRatesMap();
     const items = ratesToPublicItems(rates);
     return {
       rates,
@@ -46,6 +42,12 @@ export async function GET(req: NextRequest) {
       updatedLabelUr: rates.updatedLabelUr,
       sourceNote: rates.sourceNote,
       defaults: defaultRatesMap(),
+      autoRefresh: {
+        enabled: true,
+        intervalHours: 6,
+        sources: ["oilprices.pk (fuel)", "open.er-api.com (forex)", "gold-api.com (gold/silver)"],
+        note: "No paid API key required. Vercel Cron + Admin → Rates → Fetch live.",
+      },
     };
   });
 }
@@ -56,33 +58,12 @@ export async function PUT(req: NextRequest) {
     const json = await req.json();
     const incoming = z.record(z.string(), z.string()).parse(json.rates ?? json);
 
-    const site = await getDefaultSite();
-    const siteId = site?.id ?? null;
-    const results = [];
-
+    const filtered: Record<string, string> = {};
     for (const [key, value] of Object.entries(incoming)) {
-      if (!ALLOWED_KEYS.has(key)) continue;
-      const existing =
-        (siteId
-          ? await prisma.setting.findFirst({
-              where: { siteId, group: RATES_GROUP, key },
-            })
-          : null) ||
-        (await prisma.setting.findFirst({
-          where: { siteId: null, group: RATES_GROUP, key },
-        }));
-
-      const item = existing
-        ? await prisma.setting.update({
-            where: { id: existing.id },
-            data: { value, siteId: existing.siteId ?? siteId },
-          })
-        : await prisma.setting.create({
-            data: { siteId, group: RATES_GROUP, key, value },
-          });
-      results.push(item);
+      if (ALLOWED_KEYS.has(key)) filtered[key] = value;
     }
 
+    const results = await persistRatesMap(filtered);
     await writeAudit({
       userId: user.id,
       action: "upsert",
@@ -90,7 +71,7 @@ export async function PUT(req: NextRequest) {
       newValue: { count: results.length },
     });
 
-    const rates = await loadRatesMap();
+    const rates = await loadStoredRatesMap();
     return {
       saved: results.length,
       rates,
@@ -101,4 +82,36 @@ export async function PUT(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   return PUT(req);
+}
+
+/** Admin: fetch live rates now from free public APIs. */
+export async function POST(req: NextRequest) {
+  return handleApi(async () => {
+    const url = new URL(req.url);
+    const action = url.searchParams.get("action") || "sync";
+    const user = await requirePermission("settings", "update");
+
+    if (action !== "sync" && action !== "live") {
+      throw new Error("Unknown action — use ?action=sync");
+    }
+
+    const live = await syncLiveRatesToDb();
+    await ensureRatesRefreshJob(nextRatesRefreshAt());
+    await writeAudit({
+      userId: user.id,
+      action: "live_sync",
+      module: "rates",
+      newValue: { sources: live.sources, errors: live.errors, syncedAt: live.syncedAt },
+    });
+
+    return {
+      ok: live.sources.length > 0,
+      rates: live.rates,
+      items: ratesToPublicItems(live.rates),
+      sources: live.sources,
+      errors: live.errors,
+      syncedAt: live.syncedAt,
+      nextRefreshAt: nextRatesRefreshAt().toISOString(),
+    };
+  });
 }
