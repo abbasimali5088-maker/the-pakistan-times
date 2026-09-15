@@ -13,6 +13,7 @@ import {
   RATES_GROUP,
 } from "@/lib/market-rates";
 import { syncIfStale, ensureRatesRefreshJob } from "@/lib/fetch-live-rates";
+import type { BreakingItem, MenuPayload, PublicCategory } from "@/lib/public-types";
 import { SOCIAL_LINK_KEYS, normalizeSettingsMap } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
@@ -32,10 +33,10 @@ export default async function PublicLayout({
   }
   const lang = await getRequestLang({ lang: searchLang });
 
-  let menu: Awaited<ReturnType<typeof getMenus>> = null;
-  let categories: Awaited<ReturnType<typeof getCategories>> = [];
-  let breaking: Awaited<ReturnType<typeof getBreaking>> = [];
-  let rawSettings: Awaited<ReturnType<typeof getSettingMap>> = {};
+  let menu: MenuPayload | null = null;
+  let categories: PublicCategory[] = [];
+  let breaking: BreakingItem[] = [];
+  let rawSettings: Record<string, Record<string, string>> = {};
 
   try {
     [menu, categories, breaking, rawSettings] = await Promise.all([
@@ -45,7 +46,6 @@ export default async function PublicLayout({
       getSettingMap(),
     ]);
   } catch {
-    // Site must render even when DATABASE_URL is missing/unreachable on Vercel
     menu = null;
     categories = [];
     breaking = [];
