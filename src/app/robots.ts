@@ -1,16 +1,29 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
+const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || "https://thepakistantimes.pk";
+
+function defaultRobots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/admin/", "/api/"],
+    },
+    sitemap: `${siteUrl()}/sitemap.xml`,
+  };
+}
+
 export default async function robots(): Promise<MetadataRoute.Robots> {
-  const setting = await prisma.setting.findFirst({
-    where: { group: "seo", key: "robots_txt" },
-  });
+  try {
+    const setting = await prisma.setting.findFirst({
+      where: { group: "seo", key: "robots_txt" },
+    });
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://thepakistantimes.pk";
+    if (!setting?.value) return defaultRobots();
 
-  if (setting?.value) {
-    // Next MetadataRoute.Robots expects structured rules; keep a permissive default
-    // and expose custom content via /api/robots. Parse simple Allow/Disallow lines if present.
     const lines = setting.value.split("\n").map((l) => l.trim());
     const disallow: string[] = [];
     const allow: string[] = [];
@@ -30,16 +43,10 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         allow: allow.length ? allow : "/",
         disallow,
       },
-      sitemap: `${siteUrl}/sitemap.xml`,
+      sitemap: `${siteUrl()}/sitemap.xml`,
     };
+  } catch {
+    // Build/deploy must not fail if DB is unreachable (common on Vercel + wrong Supabase host)
+    return defaultRobots();
   }
-
-  return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/admin/", "/api/"],
-    },
-    sitemap: `${siteUrl}/sitemap.xml`,
-  };
 }
