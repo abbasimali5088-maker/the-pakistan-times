@@ -17,7 +17,7 @@
     "postinstall": "prisma generate",
     "jobs:run": "tsx scripts/run-jobs.ts",
     "verify:prod": "tsx scripts/verify-production.ts",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build"
+    "vercel-build": "bash scripts/vercel-build.sh"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
