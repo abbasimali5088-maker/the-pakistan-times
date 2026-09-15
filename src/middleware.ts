@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Required for anonymous/temporary Vercel deploys (Edge middleware blocked there)
+export const runtime = "nodejs";
+
 export function middleware(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang");
   const res = NextResponse.next();
