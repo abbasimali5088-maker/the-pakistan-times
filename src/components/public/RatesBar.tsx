@@ -2,7 +2,7 @@ import type { Lang } from "@/lib/language";
 import { pickText } from "@/lib/language";
 import type { PublicRateItem } from "@/lib/market-rates";
 
-const TICKER_KEYS = ["gold24k", "petrol", "diesel", "usd", "eur", "sar"] as const;
+const TICKER_KEYS = ["petrol", "diesel", "hiOctane", "gold24k", "usd", "sar"] as const;
 
 export function RatesBar({
   lang,
@@ -20,7 +20,7 @@ export function RatesBar({
   ) as PublicRateItem[];
   if (selected.length === 0) return null;
 
-  const updated = pickText(lang, updatedLabelUr || "آج اپڈیٹ", updatedLabel || "Updated today");
+  const updated = pickText(lang, updatedLabelUr || "لائیو", updatedLabel || "Live");
   const doubled = [...selected, ...selected];
 
   return (
@@ -30,7 +30,7 @@ export function RatesBar({
     >
       <div className="mx-auto flex max-w-[var(--maxw)] items-center gap-3 overflow-hidden px-3 py-2">
         <span className="ui-sans shrink-0 bg-[var(--masthead-red)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-          {lang === "ur" ? "ریٹس" : "Rates"}
+          {lang === "ur" ? "آج کے ریٹس" : "Today"}
         </span>
         <div className="min-w-0 flex-1 overflow-hidden">
           <div className="ticker-track ui-sans text-sm text-[var(--ink)]">
@@ -39,8 +39,8 @@ export function RatesBar({
                 <strong className="font-bold">
                   {pickText(lang, item.labelUr, item.label)}
                 </strong>
-                <span className="text-[var(--masthead-red)] font-semibold">{item.display}</span>
-                <span className="text-[var(--muted)] text-xs">
+                <span className="font-semibold text-[var(--masthead-red)]">{item.display}</span>
+                <span className="text-xs text-[var(--muted)]">
                   {pickText(lang, item.unitUr, item.unit)}
                 </span>
               </span>

@@ -44,9 +44,13 @@ export async function GET(req: NextRequest) {
       defaults: defaultRatesMap(),
       autoRefresh: {
         enabled: true,
-        intervalHours: 6,
-        sources: ["oilprices.pk (fuel)", "open.er-api.com (forex)", "gold-api.com (gold/silver)"],
-        note: "No paid API key required. Vercel Cron + Admin → Rates → Fetch live.",
+        intervalHours: 2,
+        sources: [
+          "oilprices.pk / fuel.trackmate (OGRA petrol-diesel, effective date aware)",
+          "open.er-api.com (forex)",
+          "gold-api.com (gold/silver → PKR/tola)",
+        ],
+        note: "No paid API key. Syncs on stale page load + Vercel Cron every 2h + Admin Fetch live.",
       },
     };
   });

@@ -93,7 +93,7 @@ export default function RatesPage() {
     <div>
       <AdminPageHeader
         title="Market rates"
-        description="Live server: free APIs se petrol (oilprices.pk), gold/silver (gold-api.com), forex (open.er-api.com) — har 6 ghante auto. Manual override bhi possible."
+        description="Live server: OGRA daily petrol (oilprices.pk + trackmate), gold/silver, forex — har 2 ghante + page load pe stale ho to auto sync."
         actions={
           <button
             type="button"

@@ -123,21 +123,21 @@ export function emptyRatesMap(): RatesMap {
 
 export function defaultRatesMap(): RatesMap {
   return {
-    gold24k: "285000",
-    gold22k: "261000",
-    gold21k: "249000",
-    silver: "3200",
-    petrol: "264.61",
-    hiOctane: "289.96",
-    diesel: "266.50",
-    usd: "278.50",
-    eur: "302.00",
-    gbp: "355.00",
-    sar: "74.20",
-    aed: "75.80",
-    updatedLabel: "Updated today",
-    updatedLabelUr: "آج اپڈیٹ",
-    sourceNote: "Editable from Admin → Rates (no external API key required)",
+    gold24k: "449000",
+    gold22k: "412000",
+    gold21k: "393000",
+    silver: "6800",
+    petrol: "384.34",
+    hiOctane: "395.00",
+    diesel: "415.83",
+    usd: "277.76",
+    eur: "321.00",
+    gbp: "375.00",
+    sar: "74.07",
+    aed: "75.63",
+    updatedLabel: "Awaiting live sync",
+    updatedLabelUr: "لائیو سنک کا انتظار",
+    sourceNote: "Click Admin → Rates → Fetch live rates now",
   };
 }
 

@@ -12,6 +12,7 @@ import {
   ratesToPublicItems,
   RATES_GROUP,
 } from "@/lib/market-rates";
+import { syncIfStale, ensureRatesRefreshJob } from "@/lib/fetch-live-rates";
 import { SOCIAL_LINK_KEYS, normalizeSettingsMap } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
@@ -39,11 +40,20 @@ export default async function PublicLayout({
   ]);
 
   const settings = normalizeSettingsMap(rawSettings);
-  const rates = normalizeRatesMap({
+
+  // OGRA petrol changes daily — refresh if stored rates are stale
+  let rateMap = normalizeRatesMap({
     ...defaultRatesMap(),
     ...(rawSettings[RATES_GROUP] || {}),
   });
-  const rateItems = ratesToPublicItems(rates);
+  try {
+    const fresh = await syncIfStale();
+    rateMap = fresh.rates;
+    await ensureRatesRefreshJob();
+  } catch {
+    /* keep stored rates if live sync fails */
+  }
+  const rateItems = ratesToPublicItems(rateMap);
 
   const social: Record<string, string> = {};
   for (const key of SOCIAL_LINK_KEYS) {
@@ -75,8 +85,8 @@ export default async function PublicLayout({
       <RatesBar
         lang={lang}
         items={rateItems}
-        updatedLabel={rates.updatedLabel}
-        updatedLabelUr={rates.updatedLabelUr}
+        updatedLabel={rateMap.updatedLabel}
+        updatedLabelUr={rateMap.updatedLabelUr}
       />
       <BreakingNewsBar lang={lang} items={breaking} />
       <main className="site-main">{children}</main>
