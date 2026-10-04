@@ -158,7 +158,7 @@ export async function getArticles(params: {
     const skip = (page - 1) * pageSize;
     const where: Record<string, unknown> = { ...publishedWhere() };
     if (params.category) where.category = { slug: params.category };
-    if (params.language) where.language = params.language;
+    if (params.language && params.language !== "en") where.language = params.language;
     if (params.priority) where.priority = params.priority;
     if (params.authorId) where.authorId = params.authorId;
     if (params.tag) where.tags = { some: { tag: { slug: params.tag } } };
@@ -176,6 +176,15 @@ export async function getArticles(params: {
           ],
         },
       ];
+    }
+
+    if (params.language === "en") {
+      const englishLanguageFilter = {
+        OR: [{ language: "en" }, { language: null }, { language: "" }],
+      };
+      where.AND = Array.isArray(where.AND)
+        ? [...(where.AND as unknown[]), englishLanguageFilter]
+        : [englishLanguageFilter];
     }
 
     const [total, rows] = await Promise.all([

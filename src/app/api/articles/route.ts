@@ -79,7 +79,16 @@ export async function GET(req: NextRequest) {
     if (category) {
       where.category = { slug: category };
     }
-    if (language) where.language = language;
+    if (language === "en") {
+      const englishLanguageFilter = {
+        OR: [{ language: "en" }, { language: null }, { language: "" }],
+      };
+      where.AND = Array.isArray(where.AND)
+        ? [...(where.AND as unknown[]), englishLanguageFilter]
+        : [englishLanguageFilter];
+    } else if (language) {
+      where.language = language;
+    }
     if (priority) where.priority = priority;
     if (authorId) where.authorId = authorId;
     if (tag) where.tags = { some: { tag: { slug: tag } } };
